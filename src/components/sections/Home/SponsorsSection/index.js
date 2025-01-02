@@ -1,7 +1,7 @@
 import React from 'react';
 
 const SponsorsSection = () => {
-  const basePath = '/sponsor-logo/';
+  const basePath = `${process.env.PUBLIC_URL}/images/sponsor-logo/`;
 
   const sponsors = [
     {

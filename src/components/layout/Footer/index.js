@@ -32,7 +32,7 @@ const Footer = () => {
     {
       icon: (
         <img 
-          src="/social-media-logo/XiaohongshuLOGO.png" 
+        src={process.env.PUBLIC_URL + "/images/social-media-logo/XiaohongshuLOGO.png"} 
           alt="Xiaohongshu" 
           className="w-6 h-6 object-contain"
         />

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-
+import { paths } from '../../../config/paths';
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
@@ -8,19 +8,22 @@ const Header = () => {
   const navigation = [
     { 
       name: 'Take Action', 
-      subItems: ['Give Today'] 
+      subItems: [{ name: 'Give Today', path: '/give' }]
     },
     {
       name: 'Get Involved',
-      subItems: ['Board Game Social', "Game Mixer's Ultimate Summer Bash"]
+      subItems: [
+        { name: 'Board Game Social', path: '/events/board-game-social' },
+        { name: "Game Mixer's Ultimate Summer Bash", path: '/events/summer-bash' }
+      ]
     },
     { 
       name: 'Get to Know Us', 
-      subItems: ['Meet the Team'] 
+      subItems: [{ name: 'Meet the Team', path: '/team' }]
     },
     { 
       name: 'Connect', 
-      subItems: ['Connect Us'] 
+      subItems: [{ name: 'Connect Us', path: '/contact' }]
     },
   ];
 
@@ -32,7 +35,7 @@ const Header = () => {
           <div className="flex items-center">
             <a href="/" className="flex items-center gap-2">
               <img 
-                src="/Game-mixer-logo.avif" 
+                src={process.env.PUBLIC_URL + "/images/Game-mixer-logo.avif"} 
                 alt="Game Mixer Logo" 
                 className="w-10 h-10 object-contain"
               />
@@ -49,18 +52,24 @@ const Header = () => {
                 onMouseEnter={() => setHoveredItem(item.name)}
                 onMouseLeave={() => setHoveredItem(null)}
               >
-                <a href="#" className="nav-item text-white hover:text-gray-200 transition-colors">
+                <button 
+                  className="nav-item text-white hover:text-gray-200 transition-colors"
+                  onClick={() => {/* 处理点击事件 */}}
+                >
                   {item.name}
-                </a>
+                </button>
                 {hoveredItem === item.name && (
                   <div className="absolute top-full left-0 bg-gradient-to-r from-purple-300 to-indigo-300 backdrop-blur-lg rounded-lg shadow-lg border border-white/20 mt-2 p-4"
                     style={{
                       backgroundColor: 'rgba(200, 170, 255, 0.85)',
                     }}>
                     {item.subItems.map((subItem) => (
-                      <div key={subItem} className="mb-2 last:mb-0">
-                        <a href="#" className="nav-item block text-white hover:text-gray-200 transition-colors whitespace-nowrap">
-                          {subItem}
+                      <div key={subItem.name} className="mb-2 last:mb-0">
+                        <a 
+                          href={paths.getRoutePath(subItem.path)} 
+                          className="nav-item block text-white hover:text-gray-200 transition-colors whitespace-nowrap"
+                        >
+                          {subItem.name}
                         </a>
                       </div>
                     ))}
@@ -93,15 +102,15 @@ const Header = () => {
                 <div key={item.name}>
                   <h3 className="nav-secondary text-white mb-2">{item.name}</h3>
                   {item.subItems.map((subItem) => (
-                    <a
-                      key={subItem}
-                      href="#"
-                      className="nav-item block text-white hover:text-gray-200 transition-colors px-2 py-2 rounded-lg hover:bg-white/20"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      {subItem}
-                    </a>
-                  ))}
+                    <a 
+                        key={subItem.name}
+                        href={paths.getRoutePath(subItem.path)}
+                        className="nav-item block text-white hover:text-gray-200 transition-colors px-2 py-2 rounded-lg hover:bg-white/20"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        {subItem.name}
+                      </a>
+                    ))}
                 </div>
               ))}
               <button className="button-text text-sm font-bold mt-2 w-full px-6 py-1.5 rounded-xl bg-gradient-to-r from-indigo-400/70 to-blue-400/70 backdrop-blur-md border-2 border-white/40 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 hover:from-indigo-300/80 hover:to-blue-300/80 active:scale-95 group relative overflow-hidden">
@@ -116,6 +125,5 @@ const Header = () => {
       </div>
     </header>
   );
-};
-
+}
 export default Header;

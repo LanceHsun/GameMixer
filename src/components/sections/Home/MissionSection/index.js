@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { paths } from '../../../../../src/config/paths';
 
 const MissionSection = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
   const images = [
-    { id: 1, src: "/picture/hero.avif", alt: "Community game night" },
-    { id: 2, src: "/picture/hero.avif", alt: "Board game session" },
-    { id: 3, src: "/picture/hero.avif", alt: "Game mixer event" },
+    { id: 1, src: paths.getImagePath('picture/hero.avif'), alt: "Community game night" },
+    { id: 2, src: paths.getImagePath('picture/hero.avif'), alt: "Board game session" },
+    { id: 3, src: paths.getImagePath('picture/hero.avif'), alt: "Game mixer event" },
   ];
-
   // Auto-play functionality
   useEffect(() => {
     if (!isAutoPlaying) return;

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { paths } from '../../../../../src/config/paths';
 
 const EventCarousel = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -9,20 +10,20 @@ const EventCarousel = () => {
     {
       title: 'Weekly Board Game Socials',
       description: 'Every Saturday, 80-120 participants connect through curated games that spark laughter, collaboration, and friendships.',
-      image: '/picture/hero.avif',
-      link: '/events/weekly-socials'
-    },
+      image: paths.getImagePath('picture/hero.avif'),
+      link: paths.getRoutePath('/events/weekly-socials')
+  },
     {
       title: 'Monthly Tournament',
       description: 'Join our competitive yet friendly tournament series featuring strategy games and exciting prizes.',
-      image: '/picture/hero.avif',
-      link: '/events/tournaments'
+      image: paths.getImagePath('picture/hero.avif'),
+      link: paths.getRoutePath('/events/tournaments')
     },
     {
       title: 'Family Game Day',
       description: 'A special monthly event designed for families to bond over board games and create lasting memories.',
-      image: '/picture/hero.avif',
-      link: '/events/family-day'
+      image: paths.getImagePath('picture/hero.avif'),
+      link: paths.getRoutePath('/events/family-day')
     }
   ];
 

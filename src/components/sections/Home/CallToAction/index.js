@@ -39,7 +39,7 @@ const CallToAction = () => {
           <div className="relative w-full h-48 md:h-80">
             <div className="absolute left-4 -top-4 w-2/3 aspect-[4/3] rounded-2xl shadow-md overflow-hidden transform -rotate-6 origin-bottom-left">
               <img 
-                src="/picture/hero.avif"
+                src={process.env.PUBLIC_URL + "/images/picture/hero.avif"}
                 alt="Board game hero"
                 className="w-full h-full object-cover"
               />
@@ -47,7 +47,7 @@ const CallToAction = () => {
             
             <div className="absolute right-4 top-8 w-2/3 aspect-[4/3] rounded-2xl shadow-md overflow-hidden">
               <img 
-                src="/picture/hero.avif"
+                src={process.env.PUBLIC_URL + "/images/picture/hero.avif"}
                 alt="Board game hero"
                 className="w-full h-full object-cover"
               />

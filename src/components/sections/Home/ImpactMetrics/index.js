@@ -1,4 +1,5 @@
 import React from 'react';
+import { paths } from '../../../../../src/config/paths';
 
 const MetricCard = ({ number, label, imageUrl }) => {
   return (
@@ -35,22 +36,22 @@ const ImpactMetrics = () => {
     { 
       number: '600', 
       label: 'EVENTS',
-      imageUrl: '/picture/hero.avif'
+      imageUrl: paths.getImagePath('picture/hero.avif')
     },
     { 
       number: '40k', 
       label: 'ATTENDANCES',
-      imageUrl: '/picture/hero.avif'
+      imageUrl: paths.getImagePath('picture/hero.avif')
     },
     { 
       number: '8k', 
       label: 'MEMBERS', 
-      imageUrl: '/picture/hero.avif'
+      imageUrl: paths.getImagePath('picture/hero.avif')
     },
     { 
       number: '18k', 
       label: 'VOLUNTEER HOURS',
-      imageUrl: '/picture/hero.avif'
+      imageUrl: paths.getImagePath('picture/hero.avif')
     }
   ];
 
