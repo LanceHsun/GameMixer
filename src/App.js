@@ -6,7 +6,7 @@ import './styles/globals.css';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/GameMixer">
       <MainLayout>
         <HomePage />
       </MainLayout>
