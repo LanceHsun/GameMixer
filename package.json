@@ -2,7 +2,7 @@
   "name": "game-mixer",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://lancehsun.github.io/GameMixer/",
+  "homepage": "https://lancehsun.github.io/GameMixer",
   "dependencies": {
     "@headlessui/react": "^2.2.0",
     "cra-template": "1.2.0",
