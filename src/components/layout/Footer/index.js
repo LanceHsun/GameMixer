@@ -32,7 +32,7 @@ const Footer = () => {
     {
       icon: (
         <img 
-        src={process.env.PUBLIC_URL + "/images/social-media-logo/XiaohongshuLOGO.png"} 
+          src={process.env.PUBLIC_URL + "/images/social-media-logo/XiaohongshuLOGO.png"} 
           alt="Xiaohongshu" 
           className="w-6 h-6 object-contain"
         />
@@ -43,7 +43,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-white border-t border-gray-200">
+    <footer className="bg-white">
       {/* Social Media Links */}
       <div className="max-w-screen-lg mx-auto px-4 py-6 border-b border-gray-200">
         <div className="flex justify-center space-x-6">
@@ -51,7 +51,7 @@ const Footer = () => {
             <a
               key={index}
               href={link.href}
-              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-blue-50 text-gray-600 hover:text-gray-900 transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 text-[#2C2C2C] transition-colors"
               aria-label={link.label}
               target="_blank"
               rel="noopener noreferrer"
@@ -63,46 +63,57 @@ const Footer = () => {
       </div>
 
       {/* Main Footer Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Take Action Section */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-400 uppercase">take action</h3>
-            <div className="mt-2">
-              <a href="/donate" className="text-gray-500 hover:text-gray-600">
+            <h3 className="text-sm font-bold text-[#2C2C2C] uppercase tracking-wider mb-4">take action</h3>
+            <div className="space-y-2">
+              <a href="/donate" className="block text-gray-500 hover:text-[#6B90FF] transition-colors">
                 give today
               </a>
             </div>
           </div>
+
+          {/* Get Involved Section */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-400 uppercase">Get Involved</h3>
-            <div className="mt-2 space-y-2">
-              <a href="/events" className="block text-gray-500 hover:text-gray-600">
+            <h3 className="text-sm font-bold text-[#2C2C2C] uppercase tracking-wider mb-4">Get Involved</h3>
+            <div className="space-y-2">
+              <a href="/events" className="block text-gray-500 hover:text-[#6B90FF] transition-colors">
                 Board Game Social
               </a>
-              <a href="/events" className="block text-gray-500 hover:text-gray-600">
+              <a href="/events" className="block text-gray-500 hover:text-[#6B90FF] transition-colors">
                 Game Mixer's Ultimate Summer Bash
               </a>
             </div>
           </div>
+
+          {/* Get to Know Us Section */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-400 uppercase">get to know us</h3>
-            <div className="mt-2">
-              <a href="/about" className="text-gray-500 hover:text-gray-600">
+            <h3 className="text-sm font-bold text-[#2C2C2C] uppercase tracking-wider mb-4">get to know us</h3>
+            <div className="space-y-2">
+              <a href="/about" className="block text-gray-500 hover:text-[#6B90FF] transition-colors">
                 meet the team
               </a>
             </div>
           </div>
+
+          {/* Connect Section */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-400 uppercase">connect</h3>
-            <div className="mt-2">
-              <a href="/contact" className="text-gray-500 hover:text-gray-600">
+            <h3 className="text-sm font-bold text-[#2C2C2C] uppercase tracking-wider mb-4">connect</h3>
+            <div className="space-y-2">
+              <a href="/contact" className="block text-gray-500 hover:text-[#6B90FF] transition-colors">
                 connect us
               </a>
             </div>
           </div>
         </div>
-        <div className="mt-8 pt-8 border-t border-gray-200 text-center text-gray-400">
-          ©2024 by Game Mixer A Nonprofit Organization
+
+        {/* Copyright */}
+        <div className="mt-8 pt-8 border-t border-gray-200 text-center">
+          <p className="text-gray-500 text-sm">
+            ©2024 by Game Mixer A Nonprofit Organization
+          </p>
         </div>
       </div>
     </footer>

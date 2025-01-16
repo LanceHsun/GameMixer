@@ -1,10 +1,23 @@
+/* Global style updates based on charity: water design */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --primary-yellow: #FFD200;
+  --background-cream: #FAF6F0;
+  --text-charcoal: #2C2C2C;
+  --accent-blue: #6B90FF;
+}
+
 @layer base {
   body {
-    @apply bg-background text-gray-800;
+    @apply bg-[#FAF6F0] text-[#2C2C2C];
+    font-family: 'sentinel', serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Sentinel A', 'Sentinel B', serif;
   }
 }
 
@@ -12,4 +25,52 @@
   .container-padding {
     @apply px-4 md:px-6 lg:px-8;
   }
+  
+  /* Primary Button */
+  .btn-primary {
+    @apply bg-[#FFD200] text-[#2C2C2C] px-8 py-3 rounded-lg font-bold 
+    hover:bg-[#FFE566] transition-colors duration-300;
+  }
+
+  /* Navigation */
+  .nav-item {
+    @apply text-[#2C2C2C] hover:text-[#6B90FF] transition-colors duration-300;
+  }
+
+  /* Card Styles */
+  .content-card {
+    @apply bg-white rounded-lg shadow-sm p-6;
+  }
+
+  /* Form Elements */
+  .form-input {
+    @apply border border-gray-200 rounded-lg px-4 py-2 w-full focus:outline-none 
+    focus:ring-2 focus:ring-[#FFD200] transition-all duration-300;
+  }
+}
+
+/* Custom Typography */
+.display-heading {
+  @apply text-4xl md:text-5xl lg:text-6xl font-bold leading-tight;
+  font-family: 'Sentinel A', 'Sentinel B', serif;
+}
+
+.section-heading {
+  @apply text-3xl md:text-4xl font-bold mb-6;
+  font-family: 'Sentinel A', 'Sentinel B', serif;
+}
+
+/* Layout Updates */
+.main-layout {
+  @apply min-h-screen bg-[#FAF6F0];
+}
+
+/* Header Styles */
+.header {
+  @apply sticky top-0 z-50 bg-white border-b border-gray-100;
+}
+
+/* Footer Updates */
+.footer {
+  @apply bg-white border-t border-gray-200;
 }

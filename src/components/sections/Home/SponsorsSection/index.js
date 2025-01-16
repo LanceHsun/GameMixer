@@ -40,7 +40,6 @@ const SponsorsSection = () => {
 
   const handleGiveToday = () => {
     const donationSection = document.getElementById('donation-options');
-
     if (donationSection) {
       donationSection.scrollIntoView({
         behavior: 'smooth',
@@ -50,12 +49,12 @@ const SponsorsSection = () => {
   };
 
   return (
-    <section className="max-w-screen-lg mx-auto px-4 py-12 md:py-20">
+    <section className="bg-[#FAF6F0] max-w-screen-lg mx-auto px-4 py-12 md:py-20">
       <div className="text-center space-y-4 mb-12">
-        <h2 className="text-4xl md:text-5xl font-bold text-white/90">
+        <h2 className="text-3xl md:text-4xl text-[#2C2C2C] font-medium font-serif">
           Thank You to Our Amazing Sponsors
         </h2>
-        <p className="text-xl text-white/80 max-w-3xl mx-auto">
+        <p className="text-xl text-[#2C2C2C]/70">
           We are proud to have the support of leading organizations and community
           partners who believe in building bridges through play.
         </p>
@@ -65,7 +64,7 @@ const SponsorsSection = () => {
         {sponsors.map((sponsor, index) => (
           <div
             key={index}
-            className="flex items-center justify-center relative mx-auto bg-white rounded-full shadow-md w-20 h-20 overflow-hidden"
+            className="flex items-center justify-center relative mx-auto bg-white rounded-full shadow-sm hover:shadow-md transition-shadow duration-300 w-20 h-20 overflow-hidden"
           >
             <a
               href={sponsor.link}
@@ -84,7 +83,7 @@ const SponsorsSection = () => {
       </div>
 
       <div className="text-center space-y-6 mt-12">
-        <p className="text-xl text-white/80">
+        <p className="text-xl text-[#2C2C2C]/70">
           Join these game-changers in building a more connected Silicon Valley.
         </p>
         <button 
@@ -96,38 +95,19 @@ const SponsorsSection = () => {
             text-lg
             font-bold
             tracking-wider
-            text-white
-            bg-gradient-to-r 
-            from-indigo-400/70 
-            to-blue-400/70
-            backdrop-blur-md
-            border-2
-            border-white/40
-            shadow-[0_0_15px_rgba(255,255,255,0.3)]
-            transition-all
+            bg-[#FFD200]
+            text-[#2C2C2C]
+            shadow-sm
+            transition-all 
             duration-300
-            hover:shadow-[0_0_20px_rgba(255,255,255,0.4)]
+            transform
+            hover:bg-[#FFE566]
+            hover:shadow-md
             hover:scale-105
-            hover:from-indigo-300/80 
-            hover:to-blue-300/80
             active:scale-95
-            group
-            relative
-            overflow-hidden
           "
         >
-          <span className="relative z-10 text-lg font-bold tracking-wider uppercase drop-shadow-[0_2px_2px_rgba(0,0,0,0.3)]">GIVE TODAY</span>
-          <div className="
-            absolute 
-            inset-0 
-            bg-gradient-to-r 
-            from-purple-400/40 
-            to-pink-400/40 
-            opacity-0 
-            group-hover:opacity-100 
-            transition-opacity 
-            duration-300
-          "></div>
+          GIVE TODAY
         </button>
       </div>
     </section>
