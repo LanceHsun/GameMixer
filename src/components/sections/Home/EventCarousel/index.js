@@ -43,7 +43,7 @@ const EventCarousel = () => {
   };
 
   return (
-    <section className="bg-[#FAF6F0] px-4 py-8 md:py-12">
+    <section id="event-carousel" className="bg-[#FAF6F0] px-4 py-8 md:py-12">
       <div className="max-w-screen-lg mx-auto">
         <div className="text-center mb-8">
           <h2 className="text-3xl md:text-4xl text-[#2C2C2C] font-medium mb-3 font-serif">

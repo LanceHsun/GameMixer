@@ -37,7 +37,7 @@ const TestimonialsSection = () => {
   const currentTestimonial = testimonials[currentPage];
 
   return (
-    <section className="bg-[#FAF6F0] py-16 md:py-24">
+    <section id="testimonials" className="bg-[#FAF6F0] py-16 md:py-24">
       <div className="max-w-screen-xl mx-auto px-4">
         {/* Section Header */}
         <div className="text-center mb-16">

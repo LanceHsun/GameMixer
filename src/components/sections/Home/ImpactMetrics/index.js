@@ -36,7 +36,7 @@ const ImpactMetrics = () => {
   ];
 
   return (
-    <section className="max-w-screen-lg mx-auto px-4 py-12 md:py-20">
+    <section id="impact-metrics" className="max-w-screen-lg mx-auto px-4 py-12 md:py-20">
       <h2 className="text-3xl md:text-4xl text-[#2C2C2C] font-medium text-center mb-12 font-serif">
         What difference does it make?
       </h2>

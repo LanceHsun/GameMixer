@@ -49,7 +49,7 @@ const SponsorsSection = () => {
   };
 
   return (
-    <section className="bg-[#FAF6F0] max-w-screen-lg mx-auto px-4 py-12 md:py-20">
+    <section id="sponsors" className="bg-[#FAF6F0] max-w-screen-lg mx-auto px-4 py-12 md:py-20">
       <div className="text-center space-y-4 mb-12">
         <h2 className="text-3xl md:text-4xl text-[#2C2C2C] font-medium font-serif">
           Thank You to Our Amazing Sponsors

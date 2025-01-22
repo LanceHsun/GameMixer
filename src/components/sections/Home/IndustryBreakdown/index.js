@@ -108,7 +108,7 @@ const IndustryBreakdown = () => {
   };
 
   return (
-    <section className="bg-[#FAF6F0] max-w-screen-2xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+    <section id="industry-breakdown" className="bg-[#FAF6F0] max-w-screen-2xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
       {/* Title Section */}
       <div className="text-center mb-8">
         <h2 className="text-3xl md:text-4xl text-[#2C2C2C] font-medium font-serif mb-2">
