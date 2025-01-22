@@ -3,6 +3,8 @@ import { ChevronLeft, ChevronRight, Linkedin } from 'lucide-react';
 
 const TestimonialsSection = () => {
   const [currentPage, setCurrentPage] = useState(0);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
 
   const testimonials = [
     {
@@ -23,6 +25,12 @@ const TestimonialsSection = () => {
       name: "A Developer at Google",
       quote: "I absolutely love board games and used to join many different gaming events. But then I suddenly realized that all those other events disappeared over time due to poor management and various issues. Game Mixer became my only weekly haven to look forward to! They always have games of different types and difficulty levels, with hosts who patiently explain everything. I can strongly feel the organizers' pure passion for games. It's been five years since I started attending Game Mixer every Saturday. Can you believe it, five years! It's like my Sunday church service, but I'm worshipping games instead!",
       showLinkedIn: false
+    },
+    {
+      name: "HANGSONG",
+      title: "Architect, Writer, Educator",
+      quote: "Game Mixer has marked a decade of my life. I spent countless evenings playing board games, sharing meals, and singing. Something about this community draws kindred spirits together. Conversations flow naturally here, and everyone carries themselves with grace. I can still name several core hosts who have stayed with us, always warmhearted and ready to help explain the rules. Marriage shifted my routines, but I found myself drawn to their paid gatherings, gladly joining outdoor BBQs and special events. The organizers' dedication runs deep, and I return whenever they need help. Our love for games binds us together, and I must help keep this spirit alive.",
+      showLinkedIn: false
     }
   ];
 
@@ -32,6 +40,28 @@ const TestimonialsSection = () => {
 
   const handleNext = () => {
     setCurrentPage((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
+  };
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const minSwipeDistance = 50;
+
+    if (distance > minSwipeDistance) {
+      handleNext();
+    } else if (distance < -minSwipeDistance) {
+      handlePrev();
+    }
   };
 
   const currentTestimonial = testimonials[currentPage];
@@ -44,9 +74,12 @@ const TestimonialsSection = () => {
           <p className="text-[#6B90FF] text-base mb-4 uppercase tracking-wider">
             WHAT PEOPLE ARE SAYING
           </p>
-          <h2 className="text-2xl md:text-3xl text-[#2C2C2C] font-serif mb-16">
+          <h2 className="text-2xl md:text-3xl text-[#2C2C2C] font-serif mb-4">
             An experience that transforms<br />lives through play
           </h2>
+          <p className="text-sm text-[#2C2C2C]/60 md:hidden">
+            Swipe left or right to see more stories
+          </p>
         </div>
 
         {/* Testimonials Container */}
@@ -69,8 +102,21 @@ const TestimonialsSection = () => {
           </button>
 
           {/* Testimonial Card */}
-          <div className="transition-all duration-500 ease-in-out transform">
-            <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center text-center h-full">
+          <div 
+            className="transition-all duration-500 ease-in-out transform touch-pan-x"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
+            <div 
+              className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center text-center h-full"
+              style={{
+                transform: touchEnd && touchStart 
+                  ? `translateX(${Math.min(Math.max(touchEnd - touchStart, -100), 100)}px)`
+                  : undefined,
+                transition: touchEnd && touchStart ? 'none' : 'transform 0.3s ease-in-out'
+              }}
+            >
               <div className="flex items-center gap-2 mb-2">
                 <h3 className="text-lg text-[#2C2C2C] font-serif">
                   {currentTestimonial.name}

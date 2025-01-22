@@ -12,24 +12,27 @@ const MissionSection = () => {
     { id: 3, src: paths.getImagePath('picture/hero.avif'), alt: "Game mixer event" },
   ];
 
+  // 获取移动端要显示的图片（第2和第3张）
+  const mobileImages = images.slice(1, 3);
+
   useEffect(() => {
     if (!isAutoPlaying) return;
 
     const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % mobileImages.length);
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying, images.length]);
+  }, [isAutoPlaying, mobileImages.length]);
 
   const handleNext = () => {
     setIsAutoPlaying(false);
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % mobileImages.length);
   };
 
   const handlePrev = () => {
     setIsAutoPlaying(false);
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + mobileImages.length) % mobileImages.length);
   };
 
   return (
@@ -74,7 +77,7 @@ const MissionSection = () => {
               <div className="overflow-hidden rounded-xl aspect-square max-w-[80%] mx-auto">
                 <div className="relative flex"
                      style={{ transform: `translateX(-${currentIndex * 100}%)`, transition: 'transform 0.3s ease-in-out' }}>
-                  {images.slice(1, images.length).map((image) => (
+                  {mobileImages.map((image) => (
                     <div
                       key={image.id}
                       className="min-w-full relative"
@@ -105,7 +108,7 @@ const MissionSection = () => {
 
               {/* Dots Indicator */}
               <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex space-x-2">
-                {images.slice(1).map((_, index) => (
+                {mobileImages.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => {
