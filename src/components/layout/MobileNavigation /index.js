@@ -10,7 +10,11 @@ const MobileNavigation = () => {
     { name: 'Events', icon: Calendar, id: 'event-carousel' },
     { name: 'Industry', icon: Building2, id: 'industry-breakdown' },
     { name: 'Testimonials', icon: MessageCircle, id: 'testimonials' },
-    { name: 'Donate', icon: Heart, id: 'donation-options' },
+    { 
+        name: 'Donate', 
+        icon: Heart, 
+        id: 'call-to-action' 
+      },
     { name: 'Sponsors', icon: Gift, id: 'sponsors' }
   ];
 

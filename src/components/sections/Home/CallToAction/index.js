@@ -13,7 +13,7 @@ const CallToAction = () => {
   };
 
   return (
-    <section className="max-w-5xl mx-auto px-4 py-8 md:py-12">
+    <section id="call-to-action" className="max-w-5xl mx-auto px-4 py-8 md:py-12">
       <div className="flex flex-col-reverse md:flex-row items-start gap-6 md:gap-8">
         {/* Content Area */}
         <div className="w-full md:w-1/2 space-y-4 mt-12 md:mt-0 flex flex-col items-center text-center">

@@ -12,7 +12,7 @@
 
 @layer base {
   body {
-    @apply bg-[#FAF6F0] text-[#2C2C2C];
+    @apply bg-[#FAF6F0] text-[#2C2C2C] overflow-x-hidden;
     font-family: 'sentinel', serif;
   }
 

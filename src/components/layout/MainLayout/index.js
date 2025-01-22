@@ -5,7 +5,7 @@ import MobileNavigation from '../MobileNavigation ';
 
 const MainLayout = ({ children }) => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF6F0]">
+    <div className="min-h-screen flex flex-col bg-[#FAF6F0] overflow-x-hidden w-full">
       <Header />
       <main className="flex-grow">
         {children}

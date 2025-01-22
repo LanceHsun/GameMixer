@@ -74,7 +74,7 @@ const MissionSection = () => {
               <div className="overflow-hidden rounded-xl aspect-square max-w-[80%] mx-auto">
                 <div className="relative flex"
                      style={{ transform: `translateX(-${currentIndex * 100}%)`, transition: 'transform 0.3s ease-in-out' }}>
-                  {images.slice(1).map((image) => (
+                  {images.slice(1, images.length).map((image) => (
                     <div
                       key={image.id}
                       className="min-w-full relative"

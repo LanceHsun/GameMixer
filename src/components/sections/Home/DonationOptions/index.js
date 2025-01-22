@@ -21,6 +21,21 @@ const DonationOptions = () => {
     cvv: ''
   });
 
+  const getNextSaturday = () => {
+    const today = new Date();
+    const day = today.getDay(); // 0 是周日，6 是周六
+    const daysUntilSaturday = (6 - day + 7) % 7;
+    const nextSaturday = new Date(today);
+    nextSaturday.setDate(today.getDate() + daysUntilSaturday);
+    return nextSaturday.toLocaleDateString('en-US', { 
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const nextEventDate = getNextSaturday();
+
   const donationOptions = [
     { amount: 40, description: 'Supports a participant' },
     { amount: 240, description: 'Event Games support' },
@@ -113,6 +128,9 @@ const DonationOptions = () => {
           </h2>
           <p className="text-xl text-[#2C2C2C]/70">
             Choose how you'd like to make a difference
+          </p>
+          <p className="text-lg text-[#2C2C2C]/70">
+            Join us for our next event on {nextEventDate}
           </p>
         </div>
 

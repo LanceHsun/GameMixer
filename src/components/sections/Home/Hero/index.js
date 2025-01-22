@@ -55,8 +55,21 @@ const Hero = () => {
     }
   ];
 
+  const getNextSaturday = () => {
+    const today = new Date();
+    const day = today.getDay(); // 0 是周日，6 是周六
+    const daysUntilSaturday = (6 - day + 7) % 7;
+    const nextSaturday = new Date(today);
+    nextSaturday.setDate(today.getDate() + daysUntilSaturday);
+    return nextSaturday.toLocaleDateString('en-US', { 
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
   const eventDetails = [
-    { label: 'Jan 15, 2025', icon: Calendar },
+    { label: getNextSaturday(), icon: Calendar },
     { label: 'San Jose', icon: MapPin },
     { label: '80 Expected', icon: Users }
   ];
