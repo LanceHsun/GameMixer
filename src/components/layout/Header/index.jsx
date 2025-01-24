@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { paths } from '../../../config/paths';
+import { Link } from 'react-router-dom';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -74,9 +75,12 @@ const Header = () => {
                 )}
               </div>
             ))}
-            <button className="bg-[#FFD200] text-[#2C2C2C] px-6 py-2 rounded-lg font-bold hover:bg-[#FFE566] transition-colors">
+            <Link 
+              to="/donate" 
+              className="bg-[#FFD200] text-[#2C2C2C] px-6 py-2 rounded-lg font-bold hover:bg-[#FFE566] transition-colors"
+            >
               GIVE TODAY
-            </button>
+            </Link>
           </nav>
 
           {/* Mobile menu button */}
@@ -106,9 +110,12 @@ const Header = () => {
                   ))}
                 </div>
               ))}
-              <button className="w-full bg-[#FFD200] text-[#2C2C2C] px-6 py-2 rounded-lg font-bold hover:bg-[#FFE566] transition-colors mt-2">
-                GIVE TODAY
-              </button>
+              <Link 
+              to="/donate" 
+              className="bg-[#FFD200] text-[#2C2C2C] px-6 py-2 rounded-lg font-bold hover:bg-[#FFE566] transition-colors"
+            >
+              GIVE TODAY
+            </Link>
             </nav>
           </div>
         )}
