@@ -119,7 +119,7 @@ const PastEventDetail = () => {
       </div>
 
       {/* Content */}
-      <div className="prose max-w-none mb-16">
+      <div className="prose max-w-xl mx-auto mb-16">
         <div className="whitespace-pre-line text-lg text-gray-700 leading-relaxed">
           {eventData.content}
         </div>
