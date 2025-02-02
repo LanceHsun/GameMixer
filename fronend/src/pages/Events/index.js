@@ -21,7 +21,7 @@ const EventsPage = () => {
       title: "Game Mixer's Ultimate Summer Bash!",
       location: "San Jose",
       date: "Tuesday, Jan 28",
-      image: "/api/placeholder/1200/600",
+      image: process.env.PUBLIC_URL + "/images/picture/Summer_Bash.jpg",
       slug: "summer-bash-2025"
     }
   ];
@@ -41,19 +41,89 @@ const EventsPage = () => {
     },
     {
       id: 2,
-      title: 'LOVE BITES!',
-      location: 'Ferry Building',
+      title: <span><strong>B</strong>oard-<strong>G</strong>ame <strong>T</strong>ournament</span>,
+      location: 'San Jose',
       date: 'Thu, Feb 13',
-      image: '/api/placeholder/400/300'
+      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/003.JPG"
     },
     {
       id: 3,
-      title: 'Calistoga Wine Experience | SF',
-      location: 'Press Club',
+      title: <span><strong>W</strong>inery in the <strong>S</strong>ummer</span>,
+      location: 'San Jose',
       date: 'Sat, Feb 1',
-      image: '/api/placeholder/400/300'
+      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/004.jpg"
+    },
+    {
+      id: 4,
+      title: <span><strong>H</strong>an-<strong>S</strong>tyle <strong>C</strong>lothes <strong>G</strong>ala</span>,
+      location: 'San Jose',
+      date: 'Sat, Feb 1',
+      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/005.jpg"
+    },
+    {
+      id: 5,
+      title: <span><strong>L</strong>unar <strong>N</strong>ew <strong>Y</strong>ear <strong>F</strong>estival <strong>C</strong>upertino</span>,
+      location: 'Cupertino',
+      date: 'Sat, Feb 1',
+      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/007.JPG"
+    },
+    {
+      id: 6,
+      title: <span><strong>H</strong>alloween <strong>C</strong>arnival</span>,
+      location: 'San Jose',
+      date: 'Sat, Feb 1',
+      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/010.jpg"
+    },
+    {
+      id: 7,
+      title: <span><strong>S</strong>vief <strong>C</strong>onvention</span>,
+      location: 'Santa Clara',
+      date: 'Sat, Feb 1',
+      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/Layla.JPG"
+    },
+    {
+      id: 8,
+      title: <span><strong>C</strong>upertino <strong>G</strong>ame <strong>N</strong>ight</span>,
+      location: 'Cupertino',
+      date: 'Sat, Feb 1',
+      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/rc2.jpg"
+    },
+    {
+      id: 9,
+      title: <span><strong>L</strong>abor <strong>D</strong>ay <strong>B</strong>bq</span>,
+      location: 'San Jose',
+      date: 'Sat, Feb 1',
+      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/003.JPG"
+    },
+    {
+      id: 10,
+      title: <span><strong>W</strong>inery <strong>P</strong>arty</span>,
+      location: 'San Jose',
+      date: 'Sat, Feb 1',
+      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/004.jpg"
+    },
+    {
+      id: 11,
+      title: <span><strong>C</strong>upertino <strong>G</strong>ame <strong>N</strong>ight</span>,
+      location: 'Cupertino',
+      date: 'Sat, Feb 1',
+      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/007 (1).jpg"
+    },
+    {
+      id: 12,
+      title: <span><strong>B</strong>bq in <strong>M</strong>ay</span>,
+      location: 'San Jose',
+      date: 'Sat, Feb 1',
+      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/005.jpg"
+    },
+    {
+      id: 13,
+      title: <span><strong>S</strong>anta <strong>C</strong>lara <strong>C</strong>ounty 5<strong>k</strong> <strong>R</strong>un</span>,
+      location: 'Santa Clara',
+      date: 'Sat, Feb 1',
+      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/010.jpg"
     }
-  ];
+];
 
   return (
     <div className="min-h-screen bg-white">
@@ -92,7 +162,7 @@ const EventsPage = () => {
               <div className="relative h-48">
                 <img
                   src={event.image}
-                  alt={event.title}
+                  alt={typeof event.title === 'string' ? event.title : 'Event'}
                   className="w-full h-full object-cover"
                 />
                 {event.promoted && (
