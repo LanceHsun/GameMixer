@@ -16,12 +16,19 @@ jobs:
         with:
           node-version: '18' # 或者使用你项目中使用的 Node.js 版本
 
+      - name: Install babel plugin # 添加这个步骤
+        working-directory: ./fronend
+        run: npm install --save-dev @babel/plugin-proposal-private-property-in-object
+
+
       - name: Install Dependencies
         working-directory: ./fronend 
         run: npm install
 
       - name: Build
         working-directory: ./fronend
+        env:
+          CI: false 
         run: npm run build
 
       - name: Deploy to GitHub Pages
