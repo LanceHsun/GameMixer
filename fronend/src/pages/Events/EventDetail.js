@@ -90,8 +90,54 @@ const EventDetailPage = () => {
       ]
     },
     'summer-bash-2025': {
-      // ... Summer Bash event details remain the same
-    }
+        title: "Board Game Social",
+        image: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/1B3076C5-8DC7-49E1-9612-9010F90E813E_1_102_a.jpeg",
+        date: "Saturday, January 29",
+        time: "3:00 PM - 6:00 PM",
+        location: "San Jose",
+        description: "Whether you're new to board games or a seasoned pro, our three-hour Game Mixer Board Game Social and our dinner gatherings are must-have experiences in your social calendar.\n\nAt Game Mixer, you'll discover an array of classic games that never lose their charm, alongside simple, joyful, and easy-to-learn picks recommended by our enthusiastic hosts. We also love to keep things exciting with a steady stream of new games added regularly. Join us for endless fun, great company, and the perfect blend of social and gaming excitement!\n\nNo experience required.\n\nCome and enjoy the fun, relaxing and diverse board games.",
+        host: {
+          name: "Game Mixer",
+          image: process.env.PUBLIC_URL + "/images/Game-mixer-logo.avif"
+        },
+        photos: [
+          {
+            url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/1B3076C5-8DC7-49E1-9612-9010F90E813E_1_102_a.jpeg",
+            alt: "Board game session 1",
+            description: "Board game social gathering"
+          },
+          {
+            url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/005.png",
+            alt: "Board game session 2",
+            description: "Players enjoying board games"
+          },
+          {
+            url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/6F42AF28-A052-49F9-BC2E-7AD384D50F93_1_102_a.jpeg",
+            alt: "Board game session 3",
+            description: "Game night fun"
+          },
+          {
+            url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/009.png",
+            alt: "Board game session 4",
+            description: "Community gaming event"
+          },
+          {
+            url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/IMG_0007.HEIC",
+            alt: "Board game session 5",
+            description: "Strategy game session"
+          },
+          {
+            url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/IMG_9594.PNG",
+            alt: "Board game session 6",
+            description: "Group playing games"
+          },
+          {
+            url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/IMG_9620.PNG",
+            alt: "Board game session 7",
+            description: "Game night highlights"
+          }
+        ]
+      }
   };
 
   const eventDetails = eventDetailsMap[eventSlug];
