@@ -1,0 +1,272 @@
+service: game-mixer-backend
+
+frameworkVersion: '4'
+
+custom:
+  tableName: ${self:service}-${sls:stage}
+  eventsTableName: ${self:service}-events-${sls:stage}
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-west-2'}
+  environment:
+    SENDER_EMAIL: ${env:SENDER_EMAIL}
+    TABLE_NAME: ${self:custom.tableName}
+    EVENTS_TABLE: ${self:custom.eventsTableName}
+  logRetentionInDays: 14
+  apiGateway:
+    minimumCompressionSize: 1024
+    shouldStartNameWithService: true
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: 
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TABLE_NAME}"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TABLE_NAME}/index/*"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.EVENTS_TABLE}"
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.EVENTS_TABLE}/index/*"
+        - Effect: Allow
+          Action:
+            - ses:SendEmail
+            - ses:SendRawEmail
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: "*"
+
+package:
+  patterns:
+    - "!.git/**"
+    - "!node_modules/.bin/**"
+    - "!test/**"
+    - "!.env*"
+    - "!README.md"
+    - "!package-lock.json"
+    - "!yarn.lock"
+    - "src/**"
+    - "node_modules/@aws-sdk/**"
+    - "node_modules/uuid/**"
+
+functions:
+  handleContact:
+    handler: src/handlers/contactHandler.handler
+    events:
+      - http:
+          path: contact
+          method: post
+          cors: true
+    memorySize: 256
+    timeout: 29
+
+  handlePayment:
+    handler: src/handlers/paymentHandler.handler
+    events:
+      - http:
+          path: payment
+          method: post
+          cors: true
+    memorySize: 256
+    timeout: 29
+  
+  verifyPayment:
+    handler: src/handlers/paymentHandler.verifyPayment
+    events:
+      - http:
+          path: verify-payment
+          method: post
+          cors: true
+    memorySize: 256
+    timeout: 29
+
+  handleMonetaryDonation:
+    handler: src/handlers/donationHandler.handleMonetaryDonation
+    events:
+      - http:
+          path: donations/monetary
+          method: post
+          cors: true
+    memorySize: 256
+    timeout: 29
+
+  handleGoodsDonation:
+    handler: src/handlers/donationHandler.handleGoodsDonation
+    events:
+      - http:
+          path: donations/goods
+          method: post
+          cors: true
+    memorySize: 256
+    timeout: 29
+
+  verifyDonation:
+    handler: src/handlers/donationsHandler.verifyDonation
+    events:
+      - http:
+          path: donations/verify
+          method: post
+          cors: true
+    memorySize: 256
+    timeout: 29
+
+  getEvents:
+    handler: src/handlers/eventsHandler.getEvents
+    events:
+      - http:
+          path: events
+          method: get
+          cors: true
+    memorySize: 256
+    timeout: 29
+
+  getEventDetails:
+    handler: src/handlers/eventsHandler.getEventDetails
+    events:
+      - http:
+          path: events/{id}
+          method: get
+          cors: true
+    memorySize: 256
+    timeout: 29
+
+  getTags:
+    handler: src/handlers/eventsHandler.getTags
+    events:
+      - http:
+          path: events/tags
+          method: get
+          cors: true
+    memorySize: 256
+    timeout: 29
+  
+  createEvent:
+    handler: src/handlers/eventsHandler.createEvent
+    events:
+      - http:
+          path: events
+          method: post
+          cors: true
+    memorySize: 256
+    timeout: 29
+
+resources:
+  Resources:
+    DonationsTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        TableName: ${self:custom.tableName}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: type
+            AttributeType: S
+          - AttributeName: status
+            AttributeType: S
+          - AttributeName: contactEmail
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: typeIndex
+            KeySchema:
+              - AttributeName: type
+                KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: statusIndex
+            KeySchema:
+              - AttributeName: status
+                KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: emailIndex
+            KeySchema:
+              - AttributeName: contactEmail
+                KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        Tags:
+          - Key: Environment
+            Value: ${self:provider.stage}
+
+    EventsTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        TableName: ${self:custom.eventsTableName}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: startTime
+            AttributeType: S
+          - AttributeName: tag
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: startTimeIndex
+            KeySchema:
+              - AttributeName: startTime
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: tagIndex
+            KeySchema:
+              - AttributeName: tag
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        Tags:
+          - Key: Environment
+            Value: ${self:provider.stage}
+
+    GatewayResponseDefault4XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+
+    GatewayResponseDefault5XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_5XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'

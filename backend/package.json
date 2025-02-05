@@ -1,19 +1,24 @@
 {
-  "name": "backend",
+  "name": "game-mixer-backend",
   "version": "1.0.0",
+  "description": "Game Mixer Backend Services",
   "main": "index.js",
   "scripts": {
-    "worker:dev": "wrangler dev --env dev",
-    "worker:deploy": "wrangler deploy",
-    "worker:deploy:dev": "wrangler deploy --env dev",
-    "db:migrate": "wrangler d1 execute DB --file=./src/schema.sql",
-    "db:migrate:dev": "wrangler d1 execute DB --env dev --file=./src/schema.sql"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "serverless deploy"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "itty-router": "^4.0.0"
+    "@aws-sdk/client-dynamodb": "^3.741.0",
+    "@aws-sdk/client-ses": "^3.741.0",
+    "@aws-sdk/lib-dynamodb": "^3.741.0",
+    "aws-sdk": "^2.1692.0",
+    "uuid": "^11.0.5"
   },
   "devDependencies": {
-    "wrangler": "^3.22.1",
-    "@cloudflare/workers-types": "^4.20240117.0"
+    "esbuild": "^0.24.2",
+    "serverless": "^4.6.0"
   }
 }
