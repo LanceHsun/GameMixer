@@ -1,10 +1,11 @@
 // src/handlers/eventsHandler.js
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, QueryCommand, GetCommand, PutCommand, ScanCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, QueryCommand, GetCommand, PutCommand, ScanCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 const { v4: uuidv4 } = require('uuid');
 
 const ddbClient = new DynamoDBClient();
 const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
+
 
 // Get events with optional tag filter
 exports.getEvents = async (event) => {
@@ -15,16 +16,15 @@ exports.getEvents = async (event) => {
 
     let allEvents;
     if (tag) {
-      // If tag is provided, use tag index
-      const response = await ddbDocClient.send(new QueryCommand({
-        TableName: process.env.EVENTS_TABLE,
-        IndexName: 'tagIndex',
-        KeyConditionExpression: 'tag = :tag',
-        ExpressionAttributeValues: {
-          ':tag': tag
-        }
+      // First scan all events
+      const response = await ddbDocClient.send(new ScanCommand({
+        TableName: process.env.EVENTS_TABLE
       }));
-      allEvents = response.Items || [];
+      
+      // Filter events that contain the specified tag
+      allEvents = (response.Items || []).filter(event => 
+        event.tags && Array.isArray(event.tags) && event.tags.includes(tag)
+      );
     } else {
       // If no tag, get all events
       const response = await ddbDocClient.send(new ScanCommand({
@@ -292,4 +292,161 @@ const formatDateTime = (dateTimeStr) => {
     hour: date.getHours(),
     minute: date.getMinutes()
   };
+};
+
+// Update event
+exports.updateEvent = async (event) => {
+  try {
+    const eventId = event.pathParameters.id;
+    const body = JSON.parse(event.body);
+    const {
+      title,
+      description,
+      subtitle,
+      mainPicture,
+      pictures,
+      startTime,
+      endTime,
+      location,
+      tags,
+      video,
+      links
+    } = body;
+
+    // Validate required fields
+    if (!title || !startTime || !endTime) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': true,
+        },
+        body: JSON.stringify({
+          message: 'Missing required fields',
+          required: ['title', 'startTime', 'endTime']
+        })
+      };
+    }
+
+    // Check if event exists
+    const { Item: existingEvent } = await ddbDocClient.send(new GetCommand({
+      TableName: process.env.EVENTS_TABLE,
+      Key: { id: eventId }
+    }));
+
+    if (!existingEvent) {
+      return {
+        statusCode: 404,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': true,
+        },
+        body: JSON.stringify({
+          message: 'Event not found'
+        })
+      };
+    }
+
+    const updatedEvent = {
+      ...existingEvent,
+      title,
+      description,
+      subtitle,
+      mainPicture,
+      pictures: pictures || [],
+      startTime,
+      endTime,
+      location,
+      tags: tags || [],
+      video,
+      links: links || {},
+      updatedAt: new Date().toISOString()
+    };
+
+    await ddbDocClient.send(new PutCommand({
+      TableName: process.env.EVENTS_TABLE,
+      Item: updatedEvent
+    }));
+
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true,
+      },
+      body: JSON.stringify({
+        message: 'Event updated successfully',
+        event: updatedEvent
+      })
+    };
+  } catch (error) {
+    console.error('Error updating event:', error);
+    return {
+      statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true,
+      },
+      body: JSON.stringify({
+        message: 'Error updating event',
+        error: error.message
+      })
+    };
+  }
+};
+
+// Delete event
+exports.deleteEvent = async (event) => {
+  try {
+    const eventId = event.pathParameters.id;
+
+    // Check if event exists
+    const { Item: existingEvent } = await ddbDocClient.send(new GetCommand({
+      TableName: process.env.EVENTS_TABLE,
+      Key: { id: eventId }
+    }));
+
+    if (!existingEvent) {
+      return {
+        statusCode: 404,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': true,
+        },
+        body: JSON.stringify({
+          message: 'Event not found'
+        })
+      };
+    }
+
+    await ddbDocClient.send(new DeleteCommand({
+      TableName: process.env.EVENTS_TABLE,
+      Key: { id: eventId }
+    }));
+
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true,
+      },
+      body: JSON.stringify({
+        message: 'Event deleted successfully',
+        id: eventId
+      })
+    };
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    return {
+      statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true,
+      },
+      body: JSON.stringify({
+        message: 'Error deleting event',
+        error: error.message
+      })
+    };
+  }
 };

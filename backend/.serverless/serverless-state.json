@@ -12,7 +12,13 @@
       "environment": {
         "SENDER_EMAIL": "admin@game-mixer.org",
         "TABLE_NAME": "game-mixer-backend-dev",
-        "EVENTS_TABLE": "game-mixer-backend-events-dev"
+        "EVENTS_TABLE": "game-mixer-backend-events-dev",
+        "COGNITO_USER_POOL_ID": {
+          "Ref": "AdminUserPool"
+        },
+        "COGNITO_CLIENT_ID": {
+          "Ref": "AdminUserPoolClient"
+        }
       },
       "logRetentionInDays": 14,
       "apiGateway": {
@@ -22,6 +28,21 @@
       "iam": {
         "role": {
           "statements": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "cognito-idp:AdminInitiateAuth",
+                "cognito-idp:AdminCreateUser",
+                "cognito-idp:AdminSetUserPassword",
+                "cognito-idp:AdminGetUser"
+              ],
+              "Resource": {
+                "Fn::GetAtt": [
+                  "AdminUserPool",
+                  "Arn"
+                ]
+              }
+            },
             {
               "Effect": "Allow",
               "Action": [
@@ -64,24 +85,31 @@
         "AWSTemplateFormatVersion": "2010-09-09",
         "Description": "The AWS CloudFormation template for this Serverless application",
         "Resources": {
+          "AdminLoginLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/game-mixer-backend-dev-adminLogin",
+              "RetentionInDays": 14
+            }
+          },
+          "AdminCreateUserLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/game-mixer-backend-dev-adminCreateUser",
+              "RetentionInDays": 14
+            }
+          },
+          "GetCurrentAdminLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/game-mixer-backend-dev-getCurrentAdmin",
+              "RetentionInDays": 14
+            }
+          },
           "HandleContactLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
               "LogGroupName": "/aws/lambda/game-mixer-backend-dev-handleContact",
-              "RetentionInDays": 14
-            }
-          },
-          "HandlePaymentLogGroup": {
-            "Type": "AWS::Logs::LogGroup",
-            "Properties": {
-              "LogGroupName": "/aws/lambda/game-mixer-backend-dev-handlePayment",
-              "RetentionInDays": 14
-            }
-          },
-          "VerifyPaymentLogGroup": {
-            "Type": "AWS::Logs::LogGroup",
-            "Properties": {
-              "LogGroupName": "/aws/lambda/game-mixer-backend-dev-verifyPayment",
               "RetentionInDays": 14
             }
           },
@@ -131,6 +159,20 @@
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
               "LogGroupName": "/aws/lambda/game-mixer-backend-dev-createEvent",
+              "RetentionInDays": 14
+            }
+          },
+          "UpdateEventLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/game-mixer-backend-dev-updateEvent",
+              "RetentionInDays": 14
+            }
+          },
+          "DeleteEventLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/game-mixer-backend-dev-deleteEvent",
               "RetentionInDays": 14
             }
           },
@@ -200,6 +242,9 @@
                       },
                       {
                         "$ref": "$[\"service\"][\"provider\"][\"iam\"][\"role\"][\"statements\"][2]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iam\"][\"role\"][\"statements\"][3]"
                       }
                     ]
                   }
@@ -221,12 +266,120 @@
               }
             }
           },
+          "AdminLoginLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
+                "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
+              },
+              "Handler": "src/handlers/adminAuthHandler.handleLogin",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "game-mixer-backend-dev-adminLogin",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "SENDER_EMAIL": "admin@game-mixer.org",
+                  "TABLE_NAME": "game-mixer-backend-dev",
+                  "EVENTS_TABLE": "game-mixer-backend-events-dev",
+                  "COGNITO_USER_POOL_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_USER_POOL_ID\"]"
+                  },
+                  "COGNITO_CLIENT_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_CLIENT_ID\"]"
+                  }
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "AdminLoginLogGroup"
+            ]
+          },
+          "AdminCreateUserLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
+                "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
+              },
+              "Handler": "src/handlers/adminAuthHandler.handleCreateUser",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "game-mixer-backend-dev-adminCreateUser",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "SENDER_EMAIL": "admin@game-mixer.org",
+                  "TABLE_NAME": "game-mixer-backend-dev",
+                  "EVENTS_TABLE": "game-mixer-backend-events-dev",
+                  "COGNITO_USER_POOL_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_USER_POOL_ID\"]"
+                  },
+                  "COGNITO_CLIENT_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_CLIENT_ID\"]"
+                  }
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "AdminCreateUserLogGroup"
+            ]
+          },
+          "GetCurrentAdminLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
+                "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
+              },
+              "Handler": "src/handlers/adminAuthHandler.getCurrentUser",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "game-mixer-backend-dev-getCurrentAdmin",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "SENDER_EMAIL": "admin@game-mixer.org",
+                  "TABLE_NAME": "game-mixer-backend-dev",
+                  "EVENTS_TABLE": "game-mixer-backend-events-dev",
+                  "COGNITO_USER_POOL_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_USER_POOL_ID\"]"
+                  },
+                  "COGNITO_CLIENT_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_CLIENT_ID\"]"
+                  }
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "GetCurrentAdminLogGroup"
+            ]
+          },
           "HandleContactLambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-                "S3Key": "serverless/game-mixer-backend/dev/1738733631503-2025-02-05T05:33:51.503Z/game-mixer-backend.zip"
+                "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
               },
               "Handler": "src/handlers/contactHandler.handler",
               "Runtime": "nodejs18.x",
@@ -237,7 +390,13 @@
                 "Variables": {
                   "SENDER_EMAIL": "admin@game-mixer.org",
                   "TABLE_NAME": "game-mixer-backend-dev",
-                  "EVENTS_TABLE": "game-mixer-backend-events-dev"
+                  "EVENTS_TABLE": "game-mixer-backend-events-dev",
+                  "COGNITO_USER_POOL_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_USER_POOL_ID\"]"
+                  },
+                  "COGNITO_CLIENT_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_CLIENT_ID\"]"
+                  }
                 }
               },
               "Role": {
@@ -251,74 +410,14 @@
               "HandleContactLogGroup"
             ]
           },
-          "HandlePaymentLambdaFunction": {
-            "Type": "AWS::Lambda::Function",
-            "Properties": {
-              "Code": {
-                "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-                "S3Key": "serverless/game-mixer-backend/dev/1738733631503-2025-02-05T05:33:51.503Z/game-mixer-backend.zip"
-              },
-              "Handler": "src/handlers/paymentHandler.handler",
-              "Runtime": "nodejs18.x",
-              "FunctionName": "game-mixer-backend-dev-handlePayment",
-              "MemorySize": 256,
-              "Timeout": 29,
-              "Environment": {
-                "Variables": {
-                  "SENDER_EMAIL": "admin@game-mixer.org",
-                  "TABLE_NAME": "game-mixer-backend-dev",
-                  "EVENTS_TABLE": "game-mixer-backend-events-dev"
-                }
-              },
-              "Role": {
-                "Fn::GetAtt": [
-                  "IamRoleLambdaExecution",
-                  "Arn"
-                ]
-              }
-            },
-            "DependsOn": [
-              "HandlePaymentLogGroup"
-            ]
-          },
-          "VerifyPaymentLambdaFunction": {
-            "Type": "AWS::Lambda::Function",
-            "Properties": {
-              "Code": {
-                "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-                "S3Key": "serverless/game-mixer-backend/dev/1738733631503-2025-02-05T05:33:51.503Z/game-mixer-backend.zip"
-              },
-              "Handler": "src/handlers/paymentHandler.verifyPayment",
-              "Runtime": "nodejs18.x",
-              "FunctionName": "game-mixer-backend-dev-verifyPayment",
-              "MemorySize": 256,
-              "Timeout": 29,
-              "Environment": {
-                "Variables": {
-                  "SENDER_EMAIL": "admin@game-mixer.org",
-                  "TABLE_NAME": "game-mixer-backend-dev",
-                  "EVENTS_TABLE": "game-mixer-backend-events-dev"
-                }
-              },
-              "Role": {
-                "Fn::GetAtt": [
-                  "IamRoleLambdaExecution",
-                  "Arn"
-                ]
-              }
-            },
-            "DependsOn": [
-              "VerifyPaymentLogGroup"
-            ]
-          },
           "HandleMonetaryDonationLambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-                "S3Key": "serverless/game-mixer-backend/dev/1738733631503-2025-02-05T05:33:51.503Z/game-mixer-backend.zip"
+                "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
               },
-              "Handler": "src/handlers/donationHandler.handleMonetaryDonation",
+              "Handler": "src/handlers/donationsHandler.handleMonetaryDonation",
               "Runtime": "nodejs18.x",
               "FunctionName": "game-mixer-backend-dev-handleMonetaryDonation",
               "MemorySize": 256,
@@ -327,7 +426,13 @@
                 "Variables": {
                   "SENDER_EMAIL": "admin@game-mixer.org",
                   "TABLE_NAME": "game-mixer-backend-dev",
-                  "EVENTS_TABLE": "game-mixer-backend-events-dev"
+                  "EVENTS_TABLE": "game-mixer-backend-events-dev",
+                  "COGNITO_USER_POOL_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_USER_POOL_ID\"]"
+                  },
+                  "COGNITO_CLIENT_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_CLIENT_ID\"]"
+                  }
                 }
               },
               "Role": {
@@ -346,9 +451,9 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-                "S3Key": "serverless/game-mixer-backend/dev/1738733631503-2025-02-05T05:33:51.503Z/game-mixer-backend.zip"
+                "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
               },
-              "Handler": "src/handlers/donationHandler.handleGoodsDonation",
+              "Handler": "src/handlers/donationsHandler.handleGoodsDonation",
               "Runtime": "nodejs18.x",
               "FunctionName": "game-mixer-backend-dev-handleGoodsDonation",
               "MemorySize": 256,
@@ -357,7 +462,13 @@
                 "Variables": {
                   "SENDER_EMAIL": "admin@game-mixer.org",
                   "TABLE_NAME": "game-mixer-backend-dev",
-                  "EVENTS_TABLE": "game-mixer-backend-events-dev"
+                  "EVENTS_TABLE": "game-mixer-backend-events-dev",
+                  "COGNITO_USER_POOL_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_USER_POOL_ID\"]"
+                  },
+                  "COGNITO_CLIENT_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_CLIENT_ID\"]"
+                  }
                 }
               },
               "Role": {
@@ -376,7 +487,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-                "S3Key": "serverless/game-mixer-backend/dev/1738733631503-2025-02-05T05:33:51.503Z/game-mixer-backend.zip"
+                "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
               },
               "Handler": "src/handlers/donationsHandler.verifyDonation",
               "Runtime": "nodejs18.x",
@@ -387,7 +498,13 @@
                 "Variables": {
                   "SENDER_EMAIL": "admin@game-mixer.org",
                   "TABLE_NAME": "game-mixer-backend-dev",
-                  "EVENTS_TABLE": "game-mixer-backend-events-dev"
+                  "EVENTS_TABLE": "game-mixer-backend-events-dev",
+                  "COGNITO_USER_POOL_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_USER_POOL_ID\"]"
+                  },
+                  "COGNITO_CLIENT_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_CLIENT_ID\"]"
+                  }
                 }
               },
               "Role": {
@@ -406,7 +523,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-                "S3Key": "serverless/game-mixer-backend/dev/1738733631503-2025-02-05T05:33:51.503Z/game-mixer-backend.zip"
+                "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
               },
               "Handler": "src/handlers/eventsHandler.getEvents",
               "Runtime": "nodejs18.x",
@@ -417,7 +534,13 @@
                 "Variables": {
                   "SENDER_EMAIL": "admin@game-mixer.org",
                   "TABLE_NAME": "game-mixer-backend-dev",
-                  "EVENTS_TABLE": "game-mixer-backend-events-dev"
+                  "EVENTS_TABLE": "game-mixer-backend-events-dev",
+                  "COGNITO_USER_POOL_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_USER_POOL_ID\"]"
+                  },
+                  "COGNITO_CLIENT_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_CLIENT_ID\"]"
+                  }
                 }
               },
               "Role": {
@@ -436,7 +559,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-                "S3Key": "serverless/game-mixer-backend/dev/1738733631503-2025-02-05T05:33:51.503Z/game-mixer-backend.zip"
+                "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
               },
               "Handler": "src/handlers/eventsHandler.getEventDetails",
               "Runtime": "nodejs18.x",
@@ -447,7 +570,13 @@
                 "Variables": {
                   "SENDER_EMAIL": "admin@game-mixer.org",
                   "TABLE_NAME": "game-mixer-backend-dev",
-                  "EVENTS_TABLE": "game-mixer-backend-events-dev"
+                  "EVENTS_TABLE": "game-mixer-backend-events-dev",
+                  "COGNITO_USER_POOL_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_USER_POOL_ID\"]"
+                  },
+                  "COGNITO_CLIENT_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_CLIENT_ID\"]"
+                  }
                 }
               },
               "Role": {
@@ -466,7 +595,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-                "S3Key": "serverless/game-mixer-backend/dev/1738733631503-2025-02-05T05:33:51.503Z/game-mixer-backend.zip"
+                "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
               },
               "Handler": "src/handlers/eventsHandler.getTags",
               "Runtime": "nodejs18.x",
@@ -477,7 +606,13 @@
                 "Variables": {
                   "SENDER_EMAIL": "admin@game-mixer.org",
                   "TABLE_NAME": "game-mixer-backend-dev",
-                  "EVENTS_TABLE": "game-mixer-backend-events-dev"
+                  "EVENTS_TABLE": "game-mixer-backend-events-dev",
+                  "COGNITO_USER_POOL_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_USER_POOL_ID\"]"
+                  },
+                  "COGNITO_CLIENT_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_CLIENT_ID\"]"
+                  }
                 }
               },
               "Role": {
@@ -496,7 +631,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-                "S3Key": "serverless/game-mixer-backend/dev/1738733631503-2025-02-05T05:33:51.503Z/game-mixer-backend.zip"
+                "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
               },
               "Handler": "src/handlers/eventsHandler.createEvent",
               "Runtime": "nodejs18.x",
@@ -507,7 +642,13 @@
                 "Variables": {
                   "SENDER_EMAIL": "admin@game-mixer.org",
                   "TABLE_NAME": "game-mixer-backend-dev",
-                  "EVENTS_TABLE": "game-mixer-backend-events-dev"
+                  "EVENTS_TABLE": "game-mixer-backend-events-dev",
+                  "COGNITO_USER_POOL_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_USER_POOL_ID\"]"
+                  },
+                  "COGNITO_CLIENT_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_CLIENT_ID\"]"
+                  }
                 }
               },
               "Role": {
@@ -521,104 +662,206 @@
               "CreateEventLogGroup"
             ]
           },
-          "HandleContactLambdaVersionjHbtHACl9yCzUZWECGIAMB349ZNGEZSj7g4QAVEEkbk": {
+          "UpdateEventLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
+                "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
+              },
+              "Handler": "src/handlers/eventsHandler.updateEvent",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "game-mixer-backend-dev-updateEvent",
+              "MemorySize": 256,
+              "Timeout": 29,
+              "Environment": {
+                "Variables": {
+                  "SENDER_EMAIL": "admin@game-mixer.org",
+                  "TABLE_NAME": "game-mixer-backend-dev",
+                  "EVENTS_TABLE": "game-mixer-backend-events-dev",
+                  "COGNITO_USER_POOL_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_USER_POOL_ID\"]"
+                  },
+                  "COGNITO_CLIENT_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_CLIENT_ID\"]"
+                  }
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "UpdateEventLogGroup"
+            ]
+          },
+          "DeleteEventLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
+                "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
+              },
+              "Handler": "src/handlers/eventsHandler.deleteEvent",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "game-mixer-backend-dev-deleteEvent",
+              "MemorySize": 256,
+              "Timeout": 29,
+              "Environment": {
+                "Variables": {
+                  "SENDER_EMAIL": "admin@game-mixer.org",
+                  "TABLE_NAME": "game-mixer-backend-dev",
+                  "EVENTS_TABLE": "game-mixer-backend-events-dev",
+                  "COGNITO_USER_POOL_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_USER_POOL_ID\"]"
+                  },
+                  "COGNITO_CLIENT_ID": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"COGNITO_CLIENT_ID\"]"
+                  }
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "DeleteEventLogGroup"
+            ]
+          },
+          "AdminLoginLambdaVersionDbCPERe7orURLfZXen7jK9m3Z3QdlC3x24eXbfO1OQ": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "AdminLoginLambdaFunction"
+              },
+              "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
+            }
+          },
+          "AdminCreateUserLambdaVersion9LSDEV24J3yXGn5J3lVusOyFECzj8wiX3OC3yXRt8": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "AdminCreateUserLambdaFunction"
+              },
+              "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
+            }
+          },
+          "GetCurrentAdminLambdaVersion5aSFb7o9oQY5Yf9tA4l0nsI9KCieQh9xz8KsTS0wJo": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "GetCurrentAdminLambdaFunction"
+              },
+              "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
+            }
+          },
+          "HandleContactLambdaVersionwezanSb4uuO7ouD1AaCuACdu2ZbpvSYPU61M3NxzDI": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "HandleContactLambdaFunction"
               },
-              "CodeSha256": "Ocj+BFSCvdK/Z881e9qC6iS0H7vCW1+3LIUgxV0nckA="
+              "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
             }
           },
-          "HandlePaymentLambdaVersionWK7y7CgAbjfhf8syicEisz0fx5OxNwqAAJXCHRpZU": {
-            "Type": "AWS::Lambda::Version",
-            "DeletionPolicy": "Retain",
-            "Properties": {
-              "FunctionName": {
-                "Ref": "HandlePaymentLambdaFunction"
-              },
-              "CodeSha256": "Ocj+BFSCvdK/Z881e9qC6iS0H7vCW1+3LIUgxV0nckA="
-            }
-          },
-          "VerifyPaymentLambdaVersionZtt5geznBN3zvYnROi2PquXAXT8N0hfzif5hEKA0m0": {
-            "Type": "AWS::Lambda::Version",
-            "DeletionPolicy": "Retain",
-            "Properties": {
-              "FunctionName": {
-                "Ref": "VerifyPaymentLambdaFunction"
-              },
-              "CodeSha256": "Ocj+BFSCvdK/Z881e9qC6iS0H7vCW1+3LIUgxV0nckA="
-            }
-          },
-          "HandleMonetaryDonationLambdaVersionsprfuBDMDFZWkEanQ8YjtcmcTM2gM8ph2dzGD9hg": {
+          "HandleMonetaryDonationLambdaVersionuSZ9mF2YC25wrZcFpnMVZz465lDa4H3eSdqo6Dk0wc": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "HandleMonetaryDonationLambdaFunction"
               },
-              "CodeSha256": "Ocj+BFSCvdK/Z881e9qC6iS0H7vCW1+3LIUgxV0nckA="
+              "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
             }
           },
-          "HandleGoodsDonationLambdaVersionoKHhgucHcaPKhrnqnxRWhBLfpEEVJb2NpriawhtWqRs": {
+          "HandleGoodsDonationLambdaVersionEZCWGggH6pMfVVeGe0rZIED63c3S1d6isOCVqIWtyR8": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "HandleGoodsDonationLambdaFunction"
               },
-              "CodeSha256": "Ocj+BFSCvdK/Z881e9qC6iS0H7vCW1+3LIUgxV0nckA="
+              "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
             }
           },
-          "VerifyDonationLambdaVersion0DfVUHhI0YAKZ5aqbEugjBVfEbJGswGgEsMqMzGgw": {
+          "VerifyDonationLambdaVersionsr2O0l8mITe4NqtqMcehxoo5yHUtnMn5z1w7rldK1U": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "VerifyDonationLambdaFunction"
               },
-              "CodeSha256": "Ocj+BFSCvdK/Z881e9qC6iS0H7vCW1+3LIUgxV0nckA="
+              "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
             }
           },
-          "GetEventsLambdaVersionWtODMB8GqSWxguFdKQNtAUjMJWiDsI0jkG9n1nrww4": {
+          "GetEventsLambdaVersion4qPfmmM9VUCSYRHnzMB484iJZ9HXn05S1wNkuxtuYg": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "GetEventsLambdaFunction"
               },
-              "CodeSha256": "Ocj+BFSCvdK/Z881e9qC6iS0H7vCW1+3LIUgxV0nckA="
+              "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
             }
           },
-          "GetEventDetailsLambdaVersionUrqOEn91mKeQR4xvZqEG7Ix6S32BjSDBdsoanyE0s": {
+          "GetEventDetailsLambdaVersionBd27XxYQvhAswNke4B5rt5ZvTS73SOMQ5sur0dGZQ": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "GetEventDetailsLambdaFunction"
               },
-              "CodeSha256": "Ocj+BFSCvdK/Z881e9qC6iS0H7vCW1+3LIUgxV0nckA="
+              "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
             }
           },
-          "GetTagsLambdaVersionv60Z9VWi18PPzXkAdR0Uf1Yq7veAzns25mfmsgWKNE": {
+          "GetTagsLambdaVersionhGPMh7a2it5AK3plzZi59c1C5gas1fMkIYD73Ny88": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "GetTagsLambdaFunction"
               },
-              "CodeSha256": "Ocj+BFSCvdK/Z881e9qC6iS0H7vCW1+3LIUgxV0nckA="
+              "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
             }
           },
-          "CreateEventLambdaVersion5jA2H9EQ4tw7Fyrpv25Dj52IUn8jTTZRvKsiqKHkJlw": {
+          "CreateEventLambdaVersionOx4suc60HVy1HF0KuSq5F8mKg0F89mL5TwvLWa5Ads": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "CreateEventLambdaFunction"
               },
-              "CodeSha256": "Ocj+BFSCvdK/Z881e9qC6iS0H7vCW1+3LIUgxV0nckA="
+              "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
+            }
+          },
+          "UpdateEventLambdaVersionY1EaPXBhfagdZtEcGPjmz4UxC5TcnmLyXT7a5RurKY": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "UpdateEventLambdaFunction"
+              },
+              "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
+            }
+          },
+          "DeleteEventLambdaVersion5yYhqZxNYTDOBmuyuq8ieC4TnZm3bBJHHRHWPfMc19c": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "DeleteEventLambdaFunction"
+              },
+              "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
             }
           },
           "ApiGatewayRestApi": {
@@ -634,6 +877,81 @@
               "MinimumCompressionSize": 1024
             }
           },
+          "ApiGatewayResourceAdmin": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "admin",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceAdminLogin": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceAdmin"
+              },
+              "PathPart": "login",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceAdminUsers": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceAdmin"
+              },
+              "PathPart": "users",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceAdminMe": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceAdmin"
+              },
+              "PathPart": "me",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceAdminEvents": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceAdmin"
+              },
+              "PathPart": "events",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceAdminEventsIdVar": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceAdminEvents"
+              },
+              "PathPart": "{id}",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
           "ApiGatewayResourceContact": {
             "Type": "AWS::ApiGateway::Resource",
             "Properties": {
@@ -644,36 +962,6 @@
                 ]
               },
               "PathPart": "contact",
-              "RestApiId": {
-                "Ref": "ApiGatewayRestApi"
-              }
-            }
-          },
-          "ApiGatewayResourcePayment": {
-            "Type": "AWS::ApiGateway::Resource",
-            "Properties": {
-              "ParentId": {
-                "Fn::GetAtt": [
-                  "ApiGatewayRestApi",
-                  "RootResourceId"
-                ]
-              },
-              "PathPart": "payment",
-              "RestApiId": {
-                "Ref": "ApiGatewayRestApi"
-              }
-            }
-          },
-          "ApiGatewayResourceVerifyDashpayment": {
-            "Type": "AWS::ApiGateway::Resource",
-            "Properties": {
-              "ParentId": {
-                "Fn::GetAtt": [
-                  "ApiGatewayRestApi",
-                  "RootResourceId"
-                ]
-              },
-              "PathPart": "verify-payment",
               "RestApiId": {
                 "Ref": "ApiGatewayRestApi"
               }
@@ -769,6 +1057,141 @@
               }
             }
           },
+          "ApiGatewayMethodAdminLoginOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceAdminLogin"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodAdminUsersOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceAdminUsers"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodAdminMeOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceAdminMe"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
           "ApiGatewayMethodContactOptions": {
             "Type": "AWS::ApiGateway::Method",
             "Properties": {
@@ -808,96 +1231,6 @@
               },
               "ResourceId": {
                 "Ref": "ApiGatewayResourceContact"
-              },
-              "RestApiId": {
-                "Ref": "ApiGatewayRestApi"
-              }
-            }
-          },
-          "ApiGatewayMethodPaymentOptions": {
-            "Type": "AWS::ApiGateway::Method",
-            "Properties": {
-              "AuthorizationType": "NONE",
-              "HttpMethod": "OPTIONS",
-              "MethodResponses": [
-                {
-                  "StatusCode": "200",
-                  "ResponseParameters": {
-                    "method.response.header.Access-Control-Allow-Origin": true,
-                    "method.response.header.Access-Control-Allow-Headers": true,
-                    "method.response.header.Access-Control-Allow-Methods": true
-                  },
-                  "ResponseModels": {}
-                }
-              ],
-              "RequestParameters": {},
-              "Integration": {
-                "Type": "MOCK",
-                "RequestTemplates": {
-                  "application/json": "{statusCode:200}"
-                },
-                "ContentHandling": "CONVERT_TO_TEXT",
-                "IntegrationResponses": [
-                  {
-                    "StatusCode": "200",
-                    "ResponseParameters": {
-                      "method.response.header.Access-Control-Allow-Origin": "'*'",
-                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
-                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
-                    },
-                    "ResponseTemplates": {
-                      "application/json": ""
-                    }
-                  }
-                ]
-              },
-              "ResourceId": {
-                "Ref": "ApiGatewayResourcePayment"
-              },
-              "RestApiId": {
-                "Ref": "ApiGatewayRestApi"
-              }
-            }
-          },
-          "ApiGatewayMethodVerifyDashpaymentOptions": {
-            "Type": "AWS::ApiGateway::Method",
-            "Properties": {
-              "AuthorizationType": "NONE",
-              "HttpMethod": "OPTIONS",
-              "MethodResponses": [
-                {
-                  "StatusCode": "200",
-                  "ResponseParameters": {
-                    "method.response.header.Access-Control-Allow-Origin": true,
-                    "method.response.header.Access-Control-Allow-Headers": true,
-                    "method.response.header.Access-Control-Allow-Methods": true
-                  },
-                  "ResponseModels": {}
-                }
-              ],
-              "RequestParameters": {},
-              "Integration": {
-                "Type": "MOCK",
-                "RequestTemplates": {
-                  "application/json": "{statusCode:200}"
-                },
-                "ContentHandling": "CONVERT_TO_TEXT",
-                "IntegrationResponses": [
-                  {
-                    "StatusCode": "200",
-                    "ResponseParameters": {
-                      "method.response.header.Access-Control-Allow-Origin": "'*'",
-                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
-                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
-                    },
-                    "ResponseTemplates": {
-                      "application/json": ""
-                    }
-                  }
-                ]
-              },
-              "ResourceId": {
-                "Ref": "ApiGatewayResourceVerifyDashpayment"
               },
               "RestApiId": {
                 "Ref": "ApiGatewayRestApi"
@@ -1068,7 +1401,7 @@
                     "ResponseParameters": {
                       "method.response.header.Access-Control-Allow-Origin": "'*'",
                       "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
-                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST,GET'"
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET'"
                     },
                     "ResponseTemplates": {
                       "application/json": ""
@@ -1174,6 +1507,240 @@
               }
             }
           },
+          "ApiGatewayMethodAdminEventsOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceAdminEvents"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodAdminEventsIdVarOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,DELETE,PUT'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceAdminEventsIdVar"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodAdminLoginPost": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "POST",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceAdminLogin"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "AdminLoginLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "AdminLoginLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodAdminUsersPost": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "POST",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceAdminUsers"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "COGNITO_USER_POOLS",
+              "AuthorizerId": {
+                "Ref": "AdminAuthorizerApiGatewayAuthorizer"
+              },
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "AdminCreateUserLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "AdminAuthorizerApiGatewayAuthorizer"
+            ]
+          },
+          "ApiGatewayMethodAdminMeGet": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "GET",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceAdminMe"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "COGNITO_USER_POOLS",
+              "AuthorizerId": {
+                "Ref": "AdminAuthorizerApiGatewayAuthorizer"
+              },
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "GetCurrentAdminLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "AdminAuthorizerApiGatewayAuthorizer"
+            ]
+          },
           "ApiGatewayMethodContactPost": {
             "Type": "AWS::ApiGateway::Method",
             "Properties": {
@@ -1218,98 +1785,6 @@
             },
             "DependsOn": [
               "HandleContactLambdaPermissionApiGateway"
-            ]
-          },
-          "ApiGatewayMethodPaymentPost": {
-            "Type": "AWS::ApiGateway::Method",
-            "Properties": {
-              "HttpMethod": "POST",
-              "RequestParameters": {},
-              "ResourceId": {
-                "Ref": "ApiGatewayResourcePayment"
-              },
-              "RestApiId": {
-                "Ref": "ApiGatewayRestApi"
-              },
-              "ApiKeyRequired": false,
-              "AuthorizationType": "NONE",
-              "Integration": {
-                "IntegrationHttpMethod": "POST",
-                "Type": "AWS_PROXY",
-                "Uri": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:",
-                      {
-                        "Ref": "AWS::Partition"
-                      },
-                      ":apigateway:",
-                      {
-                        "Ref": "AWS::Region"
-                      },
-                      ":lambda:path/2015-03-31/functions/",
-                      {
-                        "Fn::GetAtt": [
-                          "HandlePaymentLambdaFunction",
-                          "Arn"
-                        ]
-                      },
-                      "/invocations"
-                    ]
-                  ]
-                }
-              },
-              "MethodResponses": []
-            },
-            "DependsOn": [
-              "HandlePaymentLambdaPermissionApiGateway"
-            ]
-          },
-          "ApiGatewayMethodVerifyDashpaymentPost": {
-            "Type": "AWS::ApiGateway::Method",
-            "Properties": {
-              "HttpMethod": "POST",
-              "RequestParameters": {},
-              "ResourceId": {
-                "Ref": "ApiGatewayResourceVerifyDashpayment"
-              },
-              "RestApiId": {
-                "Ref": "ApiGatewayRestApi"
-              },
-              "ApiKeyRequired": false,
-              "AuthorizationType": "NONE",
-              "Integration": {
-                "IntegrationHttpMethod": "POST",
-                "Type": "AWS_PROXY",
-                "Uri": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:",
-                      {
-                        "Ref": "AWS::Partition"
-                      },
-                      ":apigateway:",
-                      {
-                        "Ref": "AWS::Region"
-                      },
-                      ":lambda:path/2015-03-31/functions/",
-                      {
-                        "Fn::GetAtt": [
-                          "VerifyPaymentLambdaFunction",
-                          "Arn"
-                        ]
-                      },
-                      "/invocations"
-                    ]
-                  ]
-                }
-              },
-              "MethodResponses": []
-            },
-            "DependsOn": [
-              "VerifyPaymentLambdaPermissionApiGateway"
             ]
           },
           "ApiGatewayMethodDonationsMonetaryPost": {
@@ -1588,19 +2063,22 @@
               "GetTagsLambdaPermissionApiGateway"
             ]
           },
-          "ApiGatewayMethodEventsPost": {
+          "ApiGatewayMethodAdminEventsPost": {
             "Type": "AWS::ApiGateway::Method",
             "Properties": {
               "HttpMethod": "POST",
               "RequestParameters": {},
               "ResourceId": {
-                "Ref": "ApiGatewayResourceEvents"
+                "Ref": "ApiGatewayResourceAdminEvents"
               },
               "RestApiId": {
                 "Ref": "ApiGatewayRestApi"
               },
               "ApiKeyRequired": false,
-              "AuthorizationType": "NONE",
+              "AuthorizationType": "COGNITO_USER_POOLS",
+              "AuthorizerId": {
+                "Ref": "AdminAuthorizerApiGatewayAuthorizer"
+              },
               "Integration": {
                 "IntegrationHttpMethod": "POST",
                 "Type": "AWS_PROXY",
@@ -1631,10 +2109,128 @@
               "MethodResponses": []
             },
             "DependsOn": [
-              "CreateEventLambdaPermissionApiGateway"
+              "AdminAuthorizerApiGatewayAuthorizer"
             ]
           },
-          "ApiGatewayDeployment1738733623231": {
+          "ApiGatewayMethodAdminEventsIdVarPut": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "PUT",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceAdminEventsIdVar"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "COGNITO_USER_POOLS",
+              "AuthorizerId": {
+                "Ref": "AdminAuthorizerApiGatewayAuthorizer"
+              },
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "UpdateEventLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "AdminAuthorizerApiGatewayAuthorizer"
+            ]
+          },
+          "ApiGatewayMethodAdminEventsIdVarDelete": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "DELETE",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceAdminEventsIdVar"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "COGNITO_USER_POOLS",
+              "AuthorizerId": {
+                "Ref": "AdminAuthorizerApiGatewayAuthorizer"
+              },
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "DeleteEventLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "AdminAuthorizerApiGatewayAuthorizer"
+            ]
+          },
+          "AdminAuthorizerApiGatewayAuthorizer": {
+            "Type": "AWS::ApiGateway::Authorizer",
+            "Properties": {
+              "AuthorizerResultTtlInSeconds": 300,
+              "IdentitySource": "method.request.header.Authorization",
+              "Name": "adminAuthorizer",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "Type": "COGNITO_USER_POOLS",
+              "ProviderARNs": [
+                {
+                  "Fn::GetAtt": [
+                    "AdminUserPool",
+                    "Arn"
+                  ]
+                }
+              ]
+            }
+          },
+          "ApiGatewayDeployment1738881156512": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -1643,26 +2239,143 @@
               "StageName": "dev"
             },
             "DependsOn": [
+              "ApiGatewayMethodAdminLoginOptions",
+              "ApiGatewayMethodAdminUsersOptions",
+              "ApiGatewayMethodAdminMeOptions",
               "ApiGatewayMethodContactOptions",
-              "ApiGatewayMethodPaymentOptions",
-              "ApiGatewayMethodVerifyDashpaymentOptions",
               "ApiGatewayMethodDonationsMonetaryOptions",
               "ApiGatewayMethodDonationsGoodsOptions",
               "ApiGatewayMethodDonationsVerifyOptions",
               "ApiGatewayMethodEventsOptions",
               "ApiGatewayMethodEventsIdVarOptions",
               "ApiGatewayMethodEventsTagsOptions",
+              "ApiGatewayMethodAdminEventsOptions",
+              "ApiGatewayMethodAdminEventsIdVarOptions",
+              "ApiGatewayMethodAdminLoginPost",
+              "ApiGatewayMethodAdminUsersPost",
+              "ApiGatewayMethodAdminMeGet",
               "ApiGatewayMethodContactPost",
-              "ApiGatewayMethodPaymentPost",
-              "ApiGatewayMethodVerifyDashpaymentPost",
               "ApiGatewayMethodDonationsMonetaryPost",
               "ApiGatewayMethodDonationsGoodsPost",
               "ApiGatewayMethodDonationsVerifyPost",
               "ApiGatewayMethodEventsGet",
               "ApiGatewayMethodEventsIdVarGet",
               "ApiGatewayMethodEventsTagsGet",
-              "ApiGatewayMethodEventsPost"
+              "ApiGatewayMethodAdminEventsPost",
+              "ApiGatewayMethodAdminEventsIdVarPut",
+              "ApiGatewayMethodAdminEventsIdVarDelete"
             ]
+          },
+          "AdminLoginLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "AdminLoginLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "AdminCreateUserLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "AdminCreateUserLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "GetCurrentAdminLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "GetCurrentAdminLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
           },
           "HandleContactLambdaPermissionApiGateway": {
             "Type": "AWS::Lambda::Permission",
@@ -1670,80 +2383,6 @@
               "FunctionName": {
                 "Fn::GetAtt": [
                   "HandleContactLambdaFunction",
-                  "Arn"
-                ]
-              },
-              "Action": "lambda:InvokeFunction",
-              "Principal": "apigateway.amazonaws.com",
-              "SourceArn": {
-                "Fn::Join": [
-                  "",
-                  [
-                    "arn:",
-                    {
-                      "Ref": "AWS::Partition"
-                    },
-                    ":execute-api:",
-                    {
-                      "Ref": "AWS::Region"
-                    },
-                    ":",
-                    {
-                      "Ref": "AWS::AccountId"
-                    },
-                    ":",
-                    {
-                      "Ref": "ApiGatewayRestApi"
-                    },
-                    "/*/*"
-                  ]
-                ]
-              }
-            }
-          },
-          "HandlePaymentLambdaPermissionApiGateway": {
-            "Type": "AWS::Lambda::Permission",
-            "Properties": {
-              "FunctionName": {
-                "Fn::GetAtt": [
-                  "HandlePaymentLambdaFunction",
-                  "Arn"
-                ]
-              },
-              "Action": "lambda:InvokeFunction",
-              "Principal": "apigateway.amazonaws.com",
-              "SourceArn": {
-                "Fn::Join": [
-                  "",
-                  [
-                    "arn:",
-                    {
-                      "Ref": "AWS::Partition"
-                    },
-                    ":execute-api:",
-                    {
-                      "Ref": "AWS::Region"
-                    },
-                    ":",
-                    {
-                      "Ref": "AWS::AccountId"
-                    },
-                    ":",
-                    {
-                      "Ref": "ApiGatewayRestApi"
-                    },
-                    "/*/*"
-                  ]
-                ]
-              }
-            }
-          },
-          "VerifyPaymentLambdaPermissionApiGateway": {
-            "Type": "AWS::Lambda::Permission",
-            "Properties": {
-              "FunctionName": {
-                "Fn::GetAtt": [
-                  "VerifyPaymentLambdaFunction",
                   "Arn"
                 ]
               },
@@ -2034,6 +2673,120 @@
               }
             }
           },
+          "UpdateEventLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "UpdateEventLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "DeleteEventLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "DeleteEventLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "AdminUserPool": {
+            "Type": "AWS::Cognito::UserPool",
+            "Properties": {
+              "UserPoolName": "game-mixer-backend-admin-pool-dev",
+              "AdminCreateUserConfig": {
+                "AllowAdminCreateUserOnly": true
+              },
+              "Policies": {
+                "PasswordPolicy": {
+                  "MinimumLength": 8,
+                  "RequireLowercase": true,
+                  "RequireNumbers": true,
+                  "RequireSymbols": true,
+                  "RequireUppercase": true
+                }
+              },
+              "Schema": [
+                {
+                  "Name": "email",
+                  "Required": true,
+                  "Mutable": true,
+                  "AttributeDataType": "String"
+                }
+              ]
+            }
+          },
+          "AdminUserPoolClient": {
+            "Type": "AWS::Cognito::UserPoolClient",
+            "Properties": {
+              "UserPoolId": {
+                "Ref": "AdminUserPool"
+              },
+              "ClientName": "game-mixer-backend-admin-client-dev",
+              "GenerateSecret": false,
+              "ExplicitAuthFlows": [
+                "ALLOW_ADMIN_USER_PASSWORD_AUTH",
+                "ALLOW_REFRESH_TOKEN_AUTH"
+              ]
+            }
+          },
           "DonationsTable": {
             "Type": "AWS::DynamoDB::Table",
             "DeletionPolicy": "Retain",
@@ -2228,37 +2981,46 @@
               "Name": "sls-game-mixer-backend-dev-ServerlessDeploymentBucketName"
             }
           },
+          "AdminLoginLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "AdminLoginLambdaVersionDbCPERe7orURLfZXen7jK9m3Z3QdlC3x24eXbfO1OQ"
+            },
+            "Export": {
+              "Name": "sls-game-mixer-backend-dev-AdminLoginLambdaFunctionQualifiedArn"
+            }
+          },
+          "AdminCreateUserLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "AdminCreateUserLambdaVersion9LSDEV24J3yXGn5J3lVusOyFECzj8wiX3OC3yXRt8"
+            },
+            "Export": {
+              "Name": "sls-game-mixer-backend-dev-AdminCreateUserLambdaFunctionQualifiedArn"
+            }
+          },
+          "GetCurrentAdminLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "GetCurrentAdminLambdaVersion5aSFb7o9oQY5Yf9tA4l0nsI9KCieQh9xz8KsTS0wJo"
+            },
+            "Export": {
+              "Name": "sls-game-mixer-backend-dev-GetCurrentAdminLambdaFunctionQualifiedArn"
+            }
+          },
           "HandleContactLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "HandleContactLambdaVersionjHbtHACl9yCzUZWECGIAMB349ZNGEZSj7g4QAVEEkbk"
+              "Ref": "HandleContactLambdaVersionwezanSb4uuO7ouD1AaCuACdu2ZbpvSYPU61M3NxzDI"
             },
             "Export": {
               "Name": "sls-game-mixer-backend-dev-HandleContactLambdaFunctionQualifiedArn"
             }
           },
-          "HandlePaymentLambdaFunctionQualifiedArn": {
-            "Description": "Current Lambda function version",
-            "Value": {
-              "Ref": "HandlePaymentLambdaVersionWK7y7CgAbjfhf8syicEisz0fx5OxNwqAAJXCHRpZU"
-            },
-            "Export": {
-              "Name": "sls-game-mixer-backend-dev-HandlePaymentLambdaFunctionQualifiedArn"
-            }
-          },
-          "VerifyPaymentLambdaFunctionQualifiedArn": {
-            "Description": "Current Lambda function version",
-            "Value": {
-              "Ref": "VerifyPaymentLambdaVersionZtt5geznBN3zvYnROi2PquXAXT8N0hfzif5hEKA0m0"
-            },
-            "Export": {
-              "Name": "sls-game-mixer-backend-dev-VerifyPaymentLambdaFunctionQualifiedArn"
-            }
-          },
           "HandleMonetaryDonationLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "HandleMonetaryDonationLambdaVersionsprfuBDMDFZWkEanQ8YjtcmcTM2gM8ph2dzGD9hg"
+              "Ref": "HandleMonetaryDonationLambdaVersionuSZ9mF2YC25wrZcFpnMVZz465lDa4H3eSdqo6Dk0wc"
             },
             "Export": {
               "Name": "sls-game-mixer-backend-dev-HandleMonetaryDonationLambdaFunctionQualifiedArn"
@@ -2267,7 +3029,7 @@
           "HandleGoodsDonationLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "HandleGoodsDonationLambdaVersionoKHhgucHcaPKhrnqnxRWhBLfpEEVJb2NpriawhtWqRs"
+              "Ref": "HandleGoodsDonationLambdaVersionEZCWGggH6pMfVVeGe0rZIED63c3S1d6isOCVqIWtyR8"
             },
             "Export": {
               "Name": "sls-game-mixer-backend-dev-HandleGoodsDonationLambdaFunctionQualifiedArn"
@@ -2276,7 +3038,7 @@
           "VerifyDonationLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "VerifyDonationLambdaVersion0DfVUHhI0YAKZ5aqbEugjBVfEbJGswGgEsMqMzGgw"
+              "Ref": "VerifyDonationLambdaVersionsr2O0l8mITe4NqtqMcehxoo5yHUtnMn5z1w7rldK1U"
             },
             "Export": {
               "Name": "sls-game-mixer-backend-dev-VerifyDonationLambdaFunctionQualifiedArn"
@@ -2285,7 +3047,7 @@
           "GetEventsLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "GetEventsLambdaVersionWtODMB8GqSWxguFdKQNtAUjMJWiDsI0jkG9n1nrww4"
+              "Ref": "GetEventsLambdaVersion4qPfmmM9VUCSYRHnzMB484iJZ9HXn05S1wNkuxtuYg"
             },
             "Export": {
               "Name": "sls-game-mixer-backend-dev-GetEventsLambdaFunctionQualifiedArn"
@@ -2294,7 +3056,7 @@
           "GetEventDetailsLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "GetEventDetailsLambdaVersionUrqOEn91mKeQR4xvZqEG7Ix6S32BjSDBdsoanyE0s"
+              "Ref": "GetEventDetailsLambdaVersionBd27XxYQvhAswNke4B5rt5ZvTS73SOMQ5sur0dGZQ"
             },
             "Export": {
               "Name": "sls-game-mixer-backend-dev-GetEventDetailsLambdaFunctionQualifiedArn"
@@ -2303,7 +3065,7 @@
           "GetTagsLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "GetTagsLambdaVersionv60Z9VWi18PPzXkAdR0Uf1Yq7veAzns25mfmsgWKNE"
+              "Ref": "GetTagsLambdaVersionhGPMh7a2it5AK3plzZi59c1C5gas1fMkIYD73Ny88"
             },
             "Export": {
               "Name": "sls-game-mixer-backend-dev-GetTagsLambdaFunctionQualifiedArn"
@@ -2312,10 +3074,28 @@
           "CreateEventLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "CreateEventLambdaVersion5jA2H9EQ4tw7Fyrpv25Dj52IUn8jTTZRvKsiqKHkJlw"
+              "Ref": "CreateEventLambdaVersionOx4suc60HVy1HF0KuSq5F8mKg0F89mL5TwvLWa5Ads"
             },
             "Export": {
               "Name": "sls-game-mixer-backend-dev-CreateEventLambdaFunctionQualifiedArn"
+            }
+          },
+          "UpdateEventLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "UpdateEventLambdaVersionY1EaPXBhfagdZtEcGPjmz4UxC5TcnmLyXT7a5RurKY"
+            },
+            "Export": {
+              "Name": "sls-game-mixer-backend-dev-UpdateEventLambdaFunctionQualifiedArn"
+            }
+          },
+          "DeleteEventLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "DeleteEventLambdaVersion5yYhqZxNYTDOBmuyuq8ieC4TnZm3bBJHHRHWPfMc19c"
+            },
+            "Export": {
+              "Name": "sls-game-mixer-backend-dev-DeleteEventLambdaFunctionQualifiedArn"
             }
           },
           "ServiceEndpoint": {
@@ -2350,10 +3130,147 @@
     },
     "custom": {
       "tableName": "game-mixer-backend-dev",
-      "eventsTableName": "game-mixer-backend-events-dev"
+      "eventsTableName": "game-mixer-backend-events-dev",
+      "adminUserPoolName": "game-mixer-backend-admin-pool-dev"
     },
     "pluginsData": {},
     "functions": {
+      "adminLogin": {
+        "handler": "src/handlers/adminAuthHandler.handleLogin",
+        "events": [
+          {
+            "http": {
+              "path": "admin/login",
+              "method": "post",
+              "cors": {
+                "origin": "*",
+                "methods": [
+                  "OPTIONS",
+                  "POST"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "X-Amz-Date",
+                  "Authorization",
+                  "X-Api-Key",
+                  "X-Amz-Security-Token",
+                  "X-Amz-User-Agent",
+                  "X-Amzn-Trace-Id"
+                ],
+                "allowCredentials": false
+              },
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "name": "game-mixer-backend-dev-adminLogin",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "AdminLoginLambdaVersionDbCPERe7orURLfZXen7jK9m3Z3QdlC3x24eXbfO1OQ"
+      },
+      "adminCreateUser": {
+        "handler": "src/handlers/adminAuthHandler.handleCreateUser",
+        "events": [
+          {
+            "http": {
+              "path": "admin/users",
+              "method": "post",
+              "cors": {
+                "origin": "*",
+                "methods": [
+                  "OPTIONS",
+                  "POST"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "X-Amz-Date",
+                  "Authorization",
+                  "X-Api-Key",
+                  "X-Amz-Security-Token",
+                  "X-Amz-User-Agent",
+                  "X-Amzn-Trace-Id"
+                ],
+                "allowCredentials": false
+              },
+              "authorizer": {
+                "type": "COGNITO_USER_POOLS",
+                "name": "adminAuthorizer",
+                "arn": {
+                  "Fn::GetAtt": [
+                    "AdminUserPool",
+                    "Arn"
+                  ]
+                },
+                "managedExternally": false,
+                "resultTtlInSeconds": 300,
+                "identitySource": "method.request.header.Authorization",
+                "claims": []
+              },
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "name": "game-mixer-backend-dev-adminCreateUser",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "AdminCreateUserLambdaVersion9LSDEV24J3yXGn5J3lVusOyFECzj8wiX3OC3yXRt8"
+      },
+      "getCurrentAdmin": {
+        "handler": "src/handlers/adminAuthHandler.getCurrentUser",
+        "events": [
+          {
+            "http": {
+              "path": "admin/me",
+              "method": "get",
+              "cors": {
+                "origin": "*",
+                "methods": [
+                  "OPTIONS",
+                  "GET"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "X-Amz-Date",
+                  "Authorization",
+                  "X-Api-Key",
+                  "X-Amz-Security-Token",
+                  "X-Amz-User-Agent",
+                  "X-Amzn-Trace-Id"
+                ],
+                "allowCredentials": false
+              },
+              "authorizer": {
+                "type": "COGNITO_USER_POOLS",
+                "name": "adminAuthorizer",
+                "arn": {
+                  "Fn::GetAtt": [
+                    "AdminUserPool",
+                    "Arn"
+                  ]
+                },
+                "managedExternally": false,
+                "resultTtlInSeconds": 300,
+                "identitySource": "method.request.header.Authorization",
+                "claims": []
+              },
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "name": "game-mixer-backend-dev-getCurrentAdmin",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "GetCurrentAdminLambdaVersion5aSFb7o9oQY5Yf9tA4l0nsI9KCieQh9xz8KsTS0wJo"
+      },
       "handleContact": {
         "handler": "src/handlers/contactHandler.handler",
         "events": [
@@ -2389,84 +3306,10 @@
         "memory": 256,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "HandleContactLambdaVersionjHbtHACl9yCzUZWECGIAMB349ZNGEZSj7g4QAVEEkbk"
-      },
-      "handlePayment": {
-        "handler": "src/handlers/paymentHandler.handler",
-        "events": [
-          {
-            "http": {
-              "path": "payment",
-              "method": "post",
-              "cors": {
-                "origin": "*",
-                "methods": [
-                  "OPTIONS",
-                  "POST"
-                ],
-                "headers": [
-                  "Content-Type",
-                  "X-Amz-Date",
-                  "Authorization",
-                  "X-Api-Key",
-                  "X-Amz-Security-Token",
-                  "X-Amz-User-Agent",
-                  "X-Amzn-Trace-Id"
-                ],
-                "allowCredentials": false
-              },
-              "integration": "AWS_PROXY"
-            }
-          }
-        ],
-        "memorySize": 256,
-        "timeout": 29,
-        "name": "game-mixer-backend-dev-handlePayment",
-        "package": {},
-        "memory": 256,
-        "runtime": "nodejs18.x",
-        "vpc": {},
-        "versionLogicalId": "HandlePaymentLambdaVersionWK7y7CgAbjfhf8syicEisz0fx5OxNwqAAJXCHRpZU"
-      },
-      "verifyPayment": {
-        "handler": "src/handlers/paymentHandler.verifyPayment",
-        "events": [
-          {
-            "http": {
-              "path": "verify-payment",
-              "method": "post",
-              "cors": {
-                "origin": "*",
-                "methods": [
-                  "OPTIONS",
-                  "POST"
-                ],
-                "headers": [
-                  "Content-Type",
-                  "X-Amz-Date",
-                  "Authorization",
-                  "X-Api-Key",
-                  "X-Amz-Security-Token",
-                  "X-Amz-User-Agent",
-                  "X-Amzn-Trace-Id"
-                ],
-                "allowCredentials": false
-              },
-              "integration": "AWS_PROXY"
-            }
-          }
-        ],
-        "memorySize": 256,
-        "timeout": 29,
-        "name": "game-mixer-backend-dev-verifyPayment",
-        "package": {},
-        "memory": 256,
-        "runtime": "nodejs18.x",
-        "vpc": {},
-        "versionLogicalId": "VerifyPaymentLambdaVersionZtt5geznBN3zvYnROi2PquXAXT8N0hfzif5hEKA0m0"
+        "versionLogicalId": "HandleContactLambdaVersionwezanSb4uuO7ouD1AaCuACdu2ZbpvSYPU61M3NxzDI"
       },
       "handleMonetaryDonation": {
-        "handler": "src/handlers/donationHandler.handleMonetaryDonation",
+        "handler": "src/handlers/donationsHandler.handleMonetaryDonation",
         "events": [
           {
             "http": {
@@ -2500,10 +3343,10 @@
         "memory": 256,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "HandleMonetaryDonationLambdaVersionsprfuBDMDFZWkEanQ8YjtcmcTM2gM8ph2dzGD9hg"
+        "versionLogicalId": "HandleMonetaryDonationLambdaVersionuSZ9mF2YC25wrZcFpnMVZz465lDa4H3eSdqo6Dk0wc"
       },
       "handleGoodsDonation": {
-        "handler": "src/handlers/donationHandler.handleGoodsDonation",
+        "handler": "src/handlers/donationsHandler.handleGoodsDonation",
         "events": [
           {
             "http": {
@@ -2537,7 +3380,7 @@
         "memory": 256,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "HandleGoodsDonationLambdaVersionoKHhgucHcaPKhrnqnxRWhBLfpEEVJb2NpriawhtWqRs"
+        "versionLogicalId": "HandleGoodsDonationLambdaVersionEZCWGggH6pMfVVeGe0rZIED63c3S1d6isOCVqIWtyR8"
       },
       "verifyDonation": {
         "handler": "src/handlers/donationsHandler.verifyDonation",
@@ -2574,7 +3417,7 @@
         "memory": 256,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "VerifyDonationLambdaVersion0DfVUHhI0YAKZ5aqbEugjBVfEbJGswGgEsMqMzGgw"
+        "versionLogicalId": "VerifyDonationLambdaVersionsr2O0l8mITe4NqtqMcehxoo5yHUtnMn5z1w7rldK1U"
       },
       "getEvents": {
         "handler": "src/handlers/eventsHandler.getEvents",
@@ -2611,7 +3454,7 @@
         "memory": 256,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "GetEventsLambdaVersionWtODMB8GqSWxguFdKQNtAUjMJWiDsI0jkG9n1nrww4"
+        "versionLogicalId": "GetEventsLambdaVersion4qPfmmM9VUCSYRHnzMB484iJZ9HXn05S1wNkuxtuYg"
       },
       "getEventDetails": {
         "handler": "src/handlers/eventsHandler.getEventDetails",
@@ -2648,7 +3491,7 @@
         "memory": 256,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "GetEventDetailsLambdaVersionUrqOEn91mKeQR4xvZqEG7Ix6S32BjSDBdsoanyE0s"
+        "versionLogicalId": "GetEventDetailsLambdaVersionBd27XxYQvhAswNke4B5rt5ZvTS73SOMQ5sur0dGZQ"
       },
       "getTags": {
         "handler": "src/handlers/eventsHandler.getTags",
@@ -2685,14 +3528,14 @@
         "memory": 256,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "GetTagsLambdaVersionv60Z9VWi18PPzXkAdR0Uf1Yq7veAzns25mfmsgWKNE"
+        "versionLogicalId": "GetTagsLambdaVersionhGPMh7a2it5AK3plzZi59c1C5gas1fMkIYD73Ny88"
       },
       "createEvent": {
         "handler": "src/handlers/eventsHandler.createEvent",
         "events": [
           {
             "http": {
-              "path": "events",
+              "path": "admin/events",
               "method": "post",
               "cors": {
                 "origin": "*",
@@ -2711,6 +3554,20 @@
                 ],
                 "allowCredentials": false
               },
+              "authorizer": {
+                "type": "COGNITO_USER_POOLS",
+                "name": "adminAuthorizer",
+                "arn": {
+                  "Fn::GetAtt": [
+                    "AdminUserPool",
+                    "Arn"
+                  ]
+                },
+                "managedExternally": false,
+                "resultTtlInSeconds": 300,
+                "identitySource": "method.request.header.Authorization",
+                "claims": []
+              },
               "integration": "AWS_PROXY"
             }
           }
@@ -2722,11 +3579,153 @@
         "memory": 256,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "CreateEventLambdaVersion5jA2H9EQ4tw7Fyrpv25Dj52IUn8jTTZRvKsiqKHkJlw"
+        "versionLogicalId": "CreateEventLambdaVersionOx4suc60HVy1HF0KuSq5F8mKg0F89mL5TwvLWa5Ads"
+      },
+      "updateEvent": {
+        "handler": "src/handlers/eventsHandler.updateEvent",
+        "events": [
+          {
+            "http": {
+              "path": "admin/events/{id}",
+              "method": "put",
+              "cors": {
+                "origin": "*",
+                "methods": [
+                  "OPTIONS",
+                  "PUT"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "X-Amz-Date",
+                  "Authorization",
+                  "X-Api-Key",
+                  "X-Amz-Security-Token",
+                  "X-Amz-User-Agent",
+                  "X-Amzn-Trace-Id"
+                ],
+                "allowCredentials": false
+              },
+              "authorizer": {
+                "type": "COGNITO_USER_POOLS",
+                "name": "adminAuthorizer",
+                "arn": {
+                  "Fn::GetAtt": [
+                    "AdminUserPool",
+                    "Arn"
+                  ]
+                },
+                "managedExternally": false,
+                "resultTtlInSeconds": 300,
+                "identitySource": "method.request.header.Authorization",
+                "claims": []
+              },
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "memorySize": 256,
+        "timeout": 29,
+        "name": "game-mixer-backend-dev-updateEvent",
+        "package": {},
+        "memory": 256,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "UpdateEventLambdaVersionY1EaPXBhfagdZtEcGPjmz4UxC5TcnmLyXT7a5RurKY"
+      },
+      "deleteEvent": {
+        "handler": "src/handlers/eventsHandler.deleteEvent",
+        "events": [
+          {
+            "http": {
+              "path": "admin/events/{id}",
+              "method": "delete",
+              "cors": {
+                "origin": "*",
+                "methods": [
+                  "OPTIONS",
+                  "DELETE"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "X-Amz-Date",
+                  "Authorization",
+                  "X-Api-Key",
+                  "X-Amz-Security-Token",
+                  "X-Amz-User-Agent",
+                  "X-Amzn-Trace-Id"
+                ],
+                "allowCredentials": false
+              },
+              "authorizer": {
+                "type": "COGNITO_USER_POOLS",
+                "name": "adminAuthorizer",
+                "arn": {
+                  "Fn::GetAtt": [
+                    "AdminUserPool",
+                    "Arn"
+                  ]
+                },
+                "managedExternally": false,
+                "resultTtlInSeconds": 300,
+                "identitySource": "method.request.header.Authorization",
+                "claims": []
+              },
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "memorySize": 256,
+        "timeout": 29,
+        "name": "game-mixer-backend-dev-deleteEvent",
+        "package": {},
+        "memory": 256,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "DeleteEventLambdaVersion5yYhqZxNYTDOBmuyuq8ieC4TnZm3bBJHHRHWPfMc19c"
       }
     },
     "resources": {
       "Resources": {
+        "AdminUserPool": {
+          "Type": "AWS::Cognito::UserPool",
+          "Properties": {
+            "UserPoolName": "game-mixer-backend-admin-pool-dev",
+            "AdminCreateUserConfig": {
+              "AllowAdminCreateUserOnly": true
+            },
+            "Policies": {
+              "PasswordPolicy": {
+                "MinimumLength": 8,
+                "RequireLowercase": true,
+                "RequireNumbers": true,
+                "RequireSymbols": true,
+                "RequireUppercase": true
+              }
+            },
+            "Schema": [
+              {
+                "Name": "email",
+                "Required": true,
+                "Mutable": true,
+                "AttributeDataType": "String"
+              }
+            ]
+          }
+        },
+        "AdminUserPoolClient": {
+          "Type": "AWS::Cognito::UserPoolClient",
+          "Properties": {
+            "UserPoolId": {
+              "Ref": "AdminUserPool"
+            },
+            "ClientName": "game-mixer-backend-admin-client-dev",
+            "GenerateSecret": false,
+            "ExplicitAuthFlows": [
+              "ALLOW_ADMIN_USER_PASSWORD_AUTH",
+              "ALLOW_REFRESH_TOKEN_AUTH"
+            ]
+          }
+        },
         "DonationsTable": {
           "Type": "AWS::DynamoDB::Table",
           "DeletionPolicy": "Retain",
@@ -2927,24 +3926,6 @@
       "provider": {
         "$ref": "$[\"service\"][\"provider\"]"
       },
-      "package": {
-        "patterns": [
-          "!.git/**",
-          "!node_modules/.bin/**",
-          "!test/**",
-          "!.env*",
-          "!README.md",
-          "!package-lock.json",
-          "!yarn.lock",
-          "src/**",
-          "node_modules/@aws-sdk/**",
-          "node_modules/uuid/**"
-        ],
-        "artifactsS3KeyDirname": "serverless/game-mixer-backend/dev/code-artifacts",
-        "deploymentBucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-        "artifact": "/Users/lancelin/03CS/program/game-mixer/backend/.serverless/game-mixer-backend.zip",
-        "artifactDirectoryName": "serverless/game-mixer-backend/dev/1738733631503-2025-02-05T05:33:51.503Z"
-      },
       "functions": {
         "$ref": "$[\"service\"][\"functions\"]"
       },
@@ -2958,7 +3939,7 @@
     "artifact": "/Users/lancelin/03CS/program/game-mixer/backend/.serverless/game-mixer-backend.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/game-mixer-backend/dev/1738733631503-2025-02-05T05:33:51.503Z",
+    "artifactDirectoryName": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z",
     "artifact": "game-mixer-backend.zip"
   }
 }

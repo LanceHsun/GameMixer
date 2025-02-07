@@ -7,6 +7,7 @@ const { v4: uuidv4 } = require('uuid');
 const ddbClient = new DynamoDBClient();
 const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
 const sesClient = new SESClient();
+const { GetCommand } = require('@aws-sdk/lib-dynamodb');
 
 // Handle monetary donation
 exports.handleMonetaryDonation = async (event) => {
@@ -106,7 +107,16 @@ Amount: $${amount}
 Contact Email: ${contactEmail}
 Payment Method: ${paymentMethod}
 Donation ID: ${donationId}
-Status: PENDING`,
+Status: PENDING
+
+IMPORTANT ACTION REQUIRED:
+1. Please check your Zelle account for the incoming payment of $${amount}
+2. Once payment is received, please verify the donation and send a receipt to the donor as soon as possible
+3. Use the Donation ID above when verifying the payment through the verification system
+
+Note: Timely verification and acknowledgment of donations helps maintain donor trust and satisfaction.
+
+Thank you for your prompt attention to this matter.`,
           },
         },
       },
@@ -258,7 +268,14 @@ New goods donation offer received:
 Type: ${donationType}
 Description: ${details}
 Contact Email: ${contactEmail}
-Donation ID: ${donationId}`,
+Donation ID: ${donationId}
+
+Action Required:
+Please contact the donor promptly to discuss the details of their in-kind donation. We need to verify the items' condition, specifications, and arrange logistics.
+
+Next Steps:
+1. Review donation details
+2. Contact donor within 24 hours`,
           },
         },
       },
@@ -291,6 +308,122 @@ Donation ID: ${donationId}`,
       },
       body: JSON.stringify({
         message: 'Error processing donation offer',
+        error: error.message,
+      }),
+    };
+  }
+};
+
+exports.verifyDonation = async (event) => {
+  try {
+    const body = JSON.parse(event.body);
+    const { 
+      donationId,
+      verificationDetails,
+      contactEmail
+    } = body;
+
+    // Validate required fields
+    if (!donationId || !verificationDetails) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': true,
+        },
+        body: JSON.stringify({
+          message: 'Missing required fields',
+          missingFields: Object.entries({ donationId, verificationDetails })
+            .filter(([, value]) => !value)
+            .map(([key]) => key)
+        }),
+      };
+    }
+
+    // Get the existing donation record
+    const { Item: donation } = await ddbDocClient.send(new GetCommand({
+      TableName: process.env.TABLE_NAME,
+      Key: { id: donationId }
+    }));
+
+    if (!donation) {
+      return {
+        statusCode: 404,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': true,
+        },
+        body: JSON.stringify({
+          message: 'Donation not found'
+        })
+      };
+    }
+
+    // Update donation status
+    const updatedDonation = {
+      ...donation,
+      status: 'VERIFIED',
+      verificationDetails,
+      verifiedAt: new Date().toISOString(),
+      verifiedBy: contactEmail
+    };
+
+    // Save updated donation record
+    await ddbDocClient.send(new PutCommand({
+      TableName: process.env.TABLE_NAME,
+      Item: updatedDonation
+    }));
+
+    // Send confirmation email to donor
+    const donorEmailParams = {
+      Source: process.env.SENDER_EMAIL,
+      Destination: {
+        ToAddresses: [donation.contactEmail],
+      },
+      Message: {
+        Subject: {
+          Data: 'Your Donation Has Been Verified - Game Mixer',
+        },
+        Body: {
+          Text: {
+            Data: `
+Dear Donor,
+
+Your donation (ID: ${donationId}) has been verified. Thank you for your support!
+
+Verification Details: ${verificationDetails}
+
+Best regards,
+Game Mixer Team`,
+          },
+        },
+      },
+    };
+
+    // Send email notification
+    await sesClient.send(new SendEmailCommand(donorEmailParams));
+
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true,
+      },
+      body: JSON.stringify({
+        message: 'Donation verified successfully',
+        donation: updatedDonation
+      }),
+    };
+  } catch (error) {
+    console.error('Error verifying donation:', error);
+    return {
+      statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true,
+      },
+      body: JSON.stringify({
+        message: 'Error verifying donation',
         error: error.message,
       }),
     };

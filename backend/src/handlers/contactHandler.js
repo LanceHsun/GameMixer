@@ -8,30 +8,76 @@ const ddbClient = new DynamoDBClient();
 const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
 const sesClient = new SESClient();
 
+const VALID_CATEGORIES = [
+  'Sponsors and Partners',
+  'Donation',
+  'Membership',
+  'Volunteers',
+  'Other'
+];
+
 exports.handler = async (event) => {
   try {
     const body = JSON.parse(event.body);
-    const { name, email, message } = body;
+    const { name, email, message, category } = body;
     
-    // 生成唯一ID
+    // Validate required fields
+    if (!name || !email || !message) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': true,
+        },
+        body: JSON.stringify({
+          message: 'Missing required fields',
+          missingFields: Object.entries({ name, email, message })
+            .filter(([, value]) => !value)
+            .map(([key]) => key)
+        }),
+      };
+    }
+
+    // Validate category if provided
+    if (category && !VALID_CATEGORIES.includes(category)) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': true,
+        },
+        body: JSON.stringify({
+          message: 'Invalid category',
+          validCategories: VALID_CATEGORIES
+        }),
+      };
+    }
+    
+    // Generate unique ID
     const contactId = uuidv4();
     
-    // 存储到DynamoDB
+    // Create contact item
     const contactItem = {
       id: contactId,
       email,
       name,
       message,
+      category: category || 'Other', // Default to 'Other' if not provided
       createdAt: new Date().toISOString(),
       type: 'CONTACT'
     };
 
+    // Store in DynamoDB
     await ddbDocClient.send(new PutCommand({
       TableName: process.env.TABLE_NAME,
       Item: contactItem,
     }));
 
-    // 发送确认邮件
+    // Send confirmation email
+    const emailSubject = category 
+      ? `Thank you for contacting Game Mixer - ${category}`
+      : 'Thank you for contacting Game Mixer';
+
     const emailParams = {
       Source: process.env.SENDER_EMAIL,
       Destination: {
@@ -39,11 +85,11 @@ exports.handler = async (event) => {
       },
       Message: {
         Subject: {
-          Data: 'Thank you for contacting Game Mixer',
+          Data: emailSubject,
         },
         Body: {
           Text: {
-            Data: `Dear ${name},\n\nThank you for contacting us. We have received your message and will get back to you soon.\n\nBest regards,\nGame Mixer Team`,
+            Data: `Dear ${name},\n\nThank you for contacting us regarding ${category || 'your inquiry'}. We have received your message and will get back to you soon.\n\nYour message:\n${message}\n\nBest regards,\nGame Mixer Team`,
           },
         },
       },

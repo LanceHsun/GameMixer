@@ -5,6 +5,7 @@ frameworkVersion: '4'
 custom:
   tableName: ${self:service}-${sls:stage}
   eventsTableName: ${self:service}-events-${sls:stage}
+  adminUserPoolName: ${self:service}-admin-pool-${sls:stage}
 
 provider:
   name: aws
@@ -15,6 +16,8 @@ provider:
     SENDER_EMAIL: ${env:SENDER_EMAIL}
     TABLE_NAME: ${self:custom.tableName}
     EVENTS_TABLE: ${self:custom.eventsTableName}
+    COGNITO_USER_POOL_ID: !Ref AdminUserPool
+    COGNITO_CLIENT_ID: !Ref AdminUserPoolClient
   logRetentionInDays: 14
   apiGateway:
     minimumCompressionSize: 1024
@@ -22,6 +25,13 @@ provider:
   iam:
     role:
       statements:
+        - Effect: Allow
+          Action:
+            - cognito-idp:AdminInitiateAuth
+            - cognito-idp:AdminCreateUser
+            - cognito-idp:AdminSetUserPassword
+            - cognito-idp:AdminGetUser
+          Resource: !GetAtt AdminUserPool.Arn
         - Effect: Allow
           Action:
             - dynamodb:PutItem
@@ -47,20 +57,41 @@ provider:
             - logs:PutLogEvents
           Resource: "*"
 
-package:
-  patterns:
-    - "!.git/**"
-    - "!node_modules/.bin/**"
-    - "!test/**"
-    - "!.env*"
-    - "!README.md"
-    - "!package-lock.json"
-    - "!yarn.lock"
-    - "src/**"
-    - "node_modules/@aws-sdk/**"
-    - "node_modules/uuid/**"
-
 functions:
+  # Admin Auth Functions
+  adminLogin:
+    handler: src/handlers/adminAuthHandler.handleLogin
+    events:
+      - http:
+          path: admin/login
+          method: post
+          cors: true
+
+  adminCreateUser:
+    handler: src/handlers/adminAuthHandler.handleCreateUser
+    events:
+      - http:
+          path: admin/users
+          method: post
+          cors: true
+          authorizer:
+            name: adminAuthorizer
+            type: COGNITO_USER_POOLS
+            arn: !GetAtt AdminUserPool.Arn
+
+  getCurrentAdmin:
+    handler: src/handlers/adminAuthHandler.getCurrentUser
+    events:
+      - http:
+          path: admin/me
+          method: get
+          cors: true
+          authorizer:
+            name: adminAuthorizer
+            type: COGNITO_USER_POOLS
+            arn: !GetAtt AdminUserPool.Arn
+
+  # Contact Handler
   handleContact:
     handler: src/handlers/contactHandler.handler
     events:
@@ -71,28 +102,9 @@ functions:
     memorySize: 256
     timeout: 29
 
-  handlePayment:
-    handler: src/handlers/paymentHandler.handler
-    events:
-      - http:
-          path: payment
-          method: post
-          cors: true
-    memorySize: 256
-    timeout: 29
-  
-  verifyPayment:
-    handler: src/handlers/paymentHandler.verifyPayment
-    events:
-      - http:
-          path: verify-payment
-          method: post
-          cors: true
-    memorySize: 256
-    timeout: 29
-
+  # Donation Handlers
   handleMonetaryDonation:
-    handler: src/handlers/donationHandler.handleMonetaryDonation
+    handler: src/handlers/donationsHandler.handleMonetaryDonation
     events:
       - http:
           path: donations/monetary
@@ -102,7 +114,7 @@ functions:
     timeout: 29
 
   handleGoodsDonation:
-    handler: src/handlers/donationHandler.handleGoodsDonation
+    handler: src/handlers/donationsHandler.handleGoodsDonation
     events:
       - http:
           path: donations/goods
@@ -121,6 +133,7 @@ functions:
     memorySize: 256
     timeout: 29
 
+  # Event Handlers - Public
   getEvents:
     handler: src/handlers/eventsHandler.getEvents
     events:
@@ -150,19 +163,83 @@ functions:
           cors: true
     memorySize: 256
     timeout: 29
-  
+
+  # Event Handlers - Admin
   createEvent:
     handler: src/handlers/eventsHandler.createEvent
     events:
       - http:
-          path: events
+          path: admin/events
           method: post
           cors: true
+          authorizer:
+            name: adminAuthorizer
+            type: COGNITO_USER_POOLS
+            arn: !GetAtt AdminUserPool.Arn
+    memorySize: 256
+    timeout: 29
+
+  updateEvent:
+    handler: src/handlers/eventsHandler.updateEvent
+    events:
+      - http:
+          path: admin/events/{id}
+          method: put
+          cors: true
+          authorizer:
+            name: adminAuthorizer
+            type: COGNITO_USER_POOLS
+            arn: !GetAtt AdminUserPool.Arn
+    memorySize: 256
+    timeout: 29
+
+  deleteEvent:
+    handler: src/handlers/eventsHandler.deleteEvent
+    events:
+      - http:
+          path: admin/events/{id}
+          method: delete
+          cors: true
+          authorizer:
+            name: adminAuthorizer
+            type: COGNITO_USER_POOLS
+            arn: !GetAtt AdminUserPool.Arn
     memorySize: 256
     timeout: 29
 
 resources:
   Resources:
+    # Admin Cognito Resources
+    AdminUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: ${self:custom.adminUserPoolName}
+        AdminCreateUserConfig:
+          AllowAdminCreateUserOnly: true
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 8
+            RequireLowercase: true
+            RequireNumbers: true
+            RequireSymbols: true
+            RequireUppercase: true
+        Schema:
+          - Name: email
+            Required: true
+            Mutable: true
+            AttributeDataType: String
+
+    AdminUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        UserPoolId: !Ref AdminUserPool
+        ClientName: ${self:service}-admin-client-${sls:stage}
+        GenerateSecret: false
+        ExplicitAuthFlows:
+          - ALLOW_ADMIN_USER_PASSWORD_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+
+    # DynamoDB Tables
     DonationsTable:
       Type: AWS::DynamoDB::Table
       DeletionPolicy: Retain
