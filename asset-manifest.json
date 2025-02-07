@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/GameMixer/static/css/main.43925466.css",
-    "main.js": "/GameMixer/static/js/main.574ff1ed.js",
+    "main.css": "/GameMixer/static/css/main.05adc2c5.css",
+    "main.js": "/GameMixer/static/js/main.814961f2.js",
     "static/js/488.27124c32.chunk.js": "/GameMixer/static/js/488.27124c32.chunk.js",
     "index.html": "/GameMixer/index.html",
-    "main.43925466.css.map": "/GameMixer/static/css/main.43925466.css.map",
-    "main.574ff1ed.js.map": "/GameMixer/static/js/main.574ff1ed.js.map",
+    "main.05adc2c5.css.map": "/GameMixer/static/css/main.05adc2c5.css.map",
+    "main.814961f2.js.map": "/GameMixer/static/js/main.814961f2.js.map",
     "488.27124c32.chunk.js.map": "/GameMixer/static/js/488.27124c32.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.43925466.css",
-    "static/js/main.574ff1ed.js"
+    "static/css/main.05adc2c5.css",
+    "static/js/main.814961f2.js"
   ]
 }
