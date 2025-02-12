@@ -29,9 +29,11 @@ function App() {
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/admin" element={
-            <AdminLayout>
-              <Outlet />
-            </AdminLayout>
+            <ProtectedRoute>
+              <AdminLayout>
+                <Outlet />
+              </AdminLayout>
+            </ProtectedRoute>
           }>
             <Route path="dashboard" element={
               <ProtectedRoute>
@@ -57,7 +59,7 @@ function App() {
             <Route path="/donate" element={<DonationPage />} />
             <Route path="/give" element={<DonationPage />} />
             <Route path="/events" element={<EventsPage />} />
-            <Route path="/events/:eventSlug" element={<EventDetailPage />} />
+            <Route path="/events/:eventId" element={<EventDetailPage />} />
             <Route path="/events/past/:eventId" element={<PastEventDetail />} />
           </Route>
 

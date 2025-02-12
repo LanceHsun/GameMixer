@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Linkedin } from 'lucide-react';
 
 const TestimonialsSection = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
 
   const testimonials = [
     {
@@ -31,24 +33,52 @@ const TestimonialsSection = () => {
       title: "Architect, Writer, Educator",
       quote: "Game Mixer has marked a decade of my life. I spent countless evenings playing board games, sharing meals, and singing. Something about this community draws kindred spirits together. Conversations flow naturally here, and everyone carries themselves with grace. I can still name several core hosts who have stayed with us, always warmhearted and ready to help explain the rules. Marriage shifted my routines, but I found myself drawn to their paid gatherings, gladly joining outdoor BBQs and special events. The organizers' dedication runs deep, and I return whenever they need help. Our love for games binds us together, and I must help keep this spirit alive.",
       showLinkedIn: false
+    },
+    {
+      name: "SHUAI WU",
+      title: "Senior Principal Scientist, Biotech",
+      quote: "Game Mixer events are the perfect place to meet people from different industries in a casual and relaxed vibe. I met my first Bay Area friends here, and our community is always ready to help each other out. I once connected a fellow player with a great real estate agent! Even after moving away from the Bay Area, I make sure to join whenever I visit. It's been wonderful to see how Stella has grown this community over the years.",
+      linkedinUrl: "http://linkedin.com/in/shuai-wu-03462313",
+      showLinkedIn: true
+    },
+    {
+      name: "REBECCA LI",
+      title: "Credit Analyst, Finance",
+      quote: "I met experienced gamers at Game Mixer who became amazing guides. Each visit expands my board game knowledge—like learning from a skilled player passionate about complex games with miniatures he paints himself. The conversations here go far beyond games. As a Hanfu enthusiast, I enjoy discussing traditional culture, and once, during a game, we brainstormed promoting Hanfu through a showcase at a restaurant opening. Board gamers seem naturally gifted at creative thinking! These collaborations, even if unexecuted, fuel my passion. Game Mixer is a magical space where connections spark creativity, and you never know what incredible ideas will emerge.",
+      showLinkedIn: false
+    },
+    {
+      name: "RAY",
+      title: "Restaurant Owner",
+      quote: "Stella introduced me to these board game gatherings, and I was instantly impressed by her dedication to organizing each event. As a restaurant owner, I'm happy to provide ingredients for Game Mixer's BBQ events. The community has brought so many wonderful friends into my life that helping out feels natural. I've watched with joy as their events have grown larger and more organized over time. I hope Game Mixer continues to thrive for many years to come.",
+      showLinkedIn: false
     }
-  ];
+];
 
   const handlePrev = () => {
     setCurrentPage((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1));
+    setDragOffset(0);
   };
 
   const handleNext = () => {
     setCurrentPage((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
+    setDragOffset(0);
   };
 
   const onTouchStart = (e) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
+    setIsDragging(true);
   };
 
   const onTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    if (!touchStart) return;
+    
+    const currentTouch = e.targetTouches[0].clientX;
+    setTouchEnd(currentTouch);
+    
+    const diff = currentTouch - touchStart;
+    setDragOffset(diff);
   };
 
   const onTouchEnd = () => {
@@ -56,13 +86,25 @@ const TestimonialsSection = () => {
     
     const distance = touchStart - touchEnd;
     const minSwipeDistance = 50;
+    const swipeSpeed = Math.abs(distance) / (Date.now() - touchStart);
 
-    if (distance > minSwipeDistance) {
+    setIsDragging(false);
+    setDragOffset(0);
+
+    if (distance > minSwipeDistance || (distance > 0 && swipeSpeed > 0.5)) {
       handleNext();
-    } else if (distance < -minSwipeDistance) {
+    } else if (distance < -minSwipeDistance || (distance < 0 && swipeSpeed > 0.5)) {
       handlePrev();
     }
   };
+
+  // Reset touch states when dragging ends
+  useEffect(() => {
+    if (!isDragging) {
+      setTouchStart(null);
+      setTouchEnd(null);
+    }
+  }, [isDragging]);
 
   const currentTestimonial = testimonials[currentPage];
 
@@ -87,7 +129,7 @@ const TestimonialsSection = () => {
           {/* Navigation Buttons */}
           <button
             onClick={handlePrev}
-            className="absolute -left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-[#2C2C2C]/10 hover:bg-[#2C2C2C]/20 text-[#2C2C2C] transition-colors z-10"
+            className="absolute -left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-[#2C2C2C]/10 hover:bg-[#2C2C2C]/20 text-[#2C2C2C] transition-colors z-10 hidden md:block"
             aria-label="Previous testimonial"
           >
             <ChevronLeft className="w-6 h-6" />
@@ -95,7 +137,7 @@ const TestimonialsSection = () => {
 
           <button
             onClick={handleNext}
-            className="absolute -right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-[#2C2C2C]/10 hover:bg-[#2C2C2C]/20 text-[#2C2C2C] transition-colors z-10"
+            className="absolute -right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-[#2C2C2C]/10 hover:bg-[#2C2C2C]/20 text-[#2C2C2C] transition-colors z-10 hidden md:block"
             aria-label="Next testimonial"
           >
             <ChevronRight className="w-6 h-6" />
@@ -103,18 +145,16 @@ const TestimonialsSection = () => {
 
           {/* Testimonial Card */}
           <div 
-            className="transition-all duration-500 ease-in-out transform touch-pan-x"
+            className="touch-pan-x"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
           >
             <div 
-              className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center text-center h-full"
+              className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center text-center h-full transition-transform duration-300 ease-out"
               style={{
-                transform: touchEnd && touchStart 
-                  ? `translateX(${Math.min(Math.max(touchEnd - touchStart, -100), 100)}px)`
-                  : undefined,
-                transition: touchEnd && touchStart ? 'none' : 'transform 0.3s ease-in-out'
+                transform: `translateX(${dragOffset}px)`,
+                cursor: isDragging ? 'grabbing' : 'grab'
               }}
             >
               <div className="flex items-center gap-2 mb-2">

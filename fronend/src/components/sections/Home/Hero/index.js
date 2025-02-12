@@ -115,7 +115,7 @@ const Hero = () => {
           <div className="lg:w-1/2">
             <div className="w-full h-full relative rounded-xl overflow-hidden">
               <img 
-                src={process.env.PUBLIC_URL + "/images/picture/hero.avif"}
+                src={process.env.PUBLIC_URL + "/images/picture/donate_for_future.jpg"}
                 alt="Game Mixer Event"
                 className="w-full h-full object-cover aspect-[4/3]"
               />

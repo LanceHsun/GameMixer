@@ -17,7 +17,7 @@ const MediaSection = ({ formData, setFormData }) => {
     if (newPictureUrl.trim()) {
       setFormData(prev => ({
         ...prev,
-        pictures: [...prev.pictures, newPictureUrl.trim()]
+        pictures: [...(prev.pictures || []), newPictureUrl.trim()]
       }));
       setNewPictureUrl('');
     }
@@ -153,21 +153,6 @@ const MediaSection = ({ formData, setFormData }) => {
             </span>
           ))}
         </div>
-      </div>
-
-      {/* Video URL */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Video URL
-        </label>
-        <input
-          type="url"
-          name="video"
-          value={formData.video}
-          onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#FFD200] focus:ring-[#FFD200] sm:text-sm"
-          placeholder="https://..."
-        />
       </div>
     </div>
   );

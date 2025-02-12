@@ -2,17 +2,32 @@ import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 
 const ExternalLinksSection = ({ formData, setFormData }) => {
+  // Ensure links object exists with default values
+  const links = {
+    registration: { title: '', url: '' },
+    additionalInfo: [],
+    ...formData.links
+  };
+
   const handleLinkChange = (type, field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      links: {
-        ...prev.links,
-        [type]: {
-          ...prev.links[type],
-          [field]: value
+    if (type === 'video' && field === 'url') {
+      // Update video at root level
+      setFormData(prev => ({
+        ...prev,
+        video: value
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        links: {
+          ...prev.links,
+          [type]: {
+            ...prev.links?.[type],
+            [field]: value
+          }
         }
-      }
-    }));
+      }));
+    }
   };
 
   const handleAddAdditionalLink = () => {
@@ -21,8 +36,21 @@ const ExternalLinksSection = ({ formData, setFormData }) => {
       links: {
         ...prev.links,
         additionalInfo: [
-          ...prev.links.additionalInfo,
+          ...(prev.links?.additionalInfo || []),
           { title: '', url: '' }
+        ]
+      }
+    }));
+  };
+
+  const handleAddReportLink = () => {
+    setFormData(prev => ({
+      ...prev,
+      links: {
+        ...prev.links,
+        additionalInfo: [
+          ...(prev.links?.additionalInfo || []),
+          { title: 'View Report', url: '' }
         ]
       }
     }));
@@ -33,7 +61,7 @@ const ExternalLinksSection = ({ formData, setFormData }) => {
       ...prev,
       links: {
         ...prev.links,
-        additionalInfo: prev.links.additionalInfo.map((link, i) => 
+        additionalInfo: (prev.links?.additionalInfo || []).map((link, i) => 
           i === index ? { ...link, [field]: value } : link
         )
       }
@@ -45,7 +73,7 @@ const ExternalLinksSection = ({ formData, setFormData }) => {
       ...prev,
       links: {
         ...prev.links,
-        additionalInfo: prev.links.additionalInfo.filter((_, i) => i !== index)
+        additionalInfo: (prev.links?.additionalInfo || []).filter((_, i) => i !== index)
       }
     }));
   };
@@ -62,7 +90,7 @@ const ExternalLinksSection = ({ formData, setFormData }) => {
           </label>
           <input
             type="text"
-            value={formData.links.registration.title}
+            value={links.registration?.title || ''}
             onChange={(e) => handleLinkChange('registration', 'title', e.target.value)}
             placeholder="E.g., Register Now"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#FFD200] focus:ring-[#FFD200] sm:text-sm"
@@ -74,7 +102,7 @@ const ExternalLinksSection = ({ formData, setFormData }) => {
           </label>
           <input
             type="url"
-            value={formData.links.registration.url}
+            value={links.registration?.url || ''}
             onChange={(e) => handleLinkChange('registration', 'url', e.target.value)}
             placeholder="https://"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#FFD200] focus:ring-[#FFD200] sm:text-sm"
@@ -82,63 +110,60 @@ const ExternalLinksSection = ({ formData, setFormData }) => {
         </div>
       </div>
 
-      {/* Location Link */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Location Link Title
-          </label>
-          <input
-            type="text"
-            value={formData.links.location.title}
-            onChange={(e) => handleLinkChange('location', 'title', e.target.value)}
-            placeholder="E.g., View on Map"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#FFD200] focus:ring-[#FFD200] sm:text-sm"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Location URL
-          </label>
-          <input
-            type="url"
-            value={formData.links.location.url}
-            onChange={(e) => handleLinkChange('location', 'url', e.target.value)}
-            placeholder="https://"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#FFD200] focus:ring-[#FFD200] sm:text-sm"
-          />
-        </div>
+      {/* Video Link */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          Video URL <span className="text-gray-500">(title will be "Watch Video")</span>
+        </label>
+        <input
+          type="url"
+          value={formData.video || ''}
+          onChange={(e) => handleLinkChange('video', 'url', e.target.value)}
+          placeholder="https://"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#FFD200] focus:ring-[#FFD200] sm:text-sm"
+        />
       </div>
 
       {/* Additional Links */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h5 className="text-sm font-medium text-gray-700">Additional Links</h5>
-          <button
-            type="button"
-            onClick={handleAddAdditionalLink}
-            className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-[#2C2C2C] bg-[#FFD200] hover:bg-[#FFE566]"
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Add Link
-          </button>
+          <div className="space-x-2">
+            <button
+              type="button"
+              onClick={handleAddReportLink}
+              className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-[#2C2C2C] bg-[#FFD200] hover:bg-[#FFE566]"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add Report Link
+            </button>
+            <button
+              type="button"
+              onClick={handleAddAdditionalLink}
+              className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-[#2C2C2C] bg-[#FFD200] hover:bg-[#FFE566]"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add Link
+            </button>
+          </div>
         </div>
 
-        {formData.links.additionalInfo.map((link, index) => (
+        {(links.additionalInfo || []).map((link, index) => (
           <div key={index} className="grid grid-cols-2 gap-4 relative">
             <div>
               <input
                 type="text"
-                value={link.title}
+                value={link.title || ''}
                 onChange={(e) => handleAdditionalLinkChange(index, 'title', e.target.value)}
                 placeholder="Link Title"
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#FFD200] focus:ring-[#FFD200] sm:text-sm"
+                readOnly={link.title === 'View Report'}
               />
             </div>
             <div className="flex gap-2">
               <input
                 type="url"
-                value={link.url}
+                value={link.url || ''}
                 onChange={(e) => handleAdditionalLinkChange(index, 'url', e.target.value)}
                 placeholder="https://"
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#FFD200] focus:ring-[#FFD200] sm:text-sm"

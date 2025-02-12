@@ -6,33 +6,36 @@ const MissionSection = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-  const images = [
-    { id: 1, src: paths.getImagePath('picture/mission.avif'), alt: "Community game night" },
-    { id: 2, src: paths.getImagePath('picture/hero.avif'), alt: "Board game session" },
-    { id: 3, src: paths.getImagePath('picture/hero.avif'), alt: "Game mixer event" },
-  ];
+  // Separate hero image and carousel images
+  const heroImage = {
+    src: paths.getImagePath('picture/mission-main.jpg'),
+    alt: "Main hero image"
+  };
 
-  // Get mobile images (2nd and 3rd images)
-  const mobileImages = images.slice(1, 3);
+  const carouselImages = [
+    { id: 1, src: paths.getImagePath('picture/carousel-1.jpg'), alt: "Community game night" },
+    { id: 2, src: paths.getImagePath('picture/carousel-2.jpg'), alt: "Board game session" },
+    { id: 3, src: paths.getImagePath('picture/carousel-3.JPG'), alt: "Game mixer event" },
+  ];
 
   useEffect(() => {
     if (!isAutoPlaying) return;
 
     const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % mobileImages.length);
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % carouselImages.length);
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying, mobileImages.length]);
+  }, [isAutoPlaying, carouselImages.length]);
 
   const handleNext = () => {
     setIsAutoPlaying(false);
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % mobileImages.length);
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % carouselImages.length);
   };
 
   const handlePrev = () => {
     setIsAutoPlaying(false);
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + mobileImages.length) % mobileImages.length);
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + carouselImages.length) % carouselImages.length);
   };
 
   return (
@@ -40,8 +43,8 @@ const MissionSection = () => {
       {/* Hero Image - Mobile */}
       <div className="md:hidden w-full h-[50vh] relative">
         <img
-          src={images[0].src}
-          alt={images[0].alt}
+          src={heroImage.src}
+          alt={heroImage.alt}
           className="w-full h-full object-cover"
         />
       </div>
@@ -51,8 +54,8 @@ const MissionSection = () => {
           {/* Hero Image - Desktop */}
           <div className="hidden md:block w-full h-[60vh] relative mb-8">
             <img
-              src={images[0].src}
-              alt={images[0].alt}
+              src={heroImage.src}
+              alt={heroImage.alt}
               className="w-full h-full object-cover"
             />
           </div>
@@ -67,7 +70,7 @@ const MissionSection = () => {
           <div className="max-w-5xl mx-auto space-y-8 md:space-y-16">
             {/* Image Carousel - Desktop */}
             <div className="hidden md:grid md:grid-cols-3 gap-6">
-              {images.map((image) => (
+              {carouselImages.map((image) => (
                 <div 
                   key={image.id}
                   className="bg-white rounded-xl overflow-hidden relative aspect-square shadow-sm"
@@ -81,7 +84,7 @@ const MissionSection = () => {
               ))}
             </div>
 
-            {/* Image Carousel - Mobile (only showing remaining 2 images) */}
+            {/* Image Carousel - Mobile */}
             <div className="relative md:hidden">
               <div className="overflow-hidden rounded-xl aspect-square max-w-[80%] mx-auto">
                 <div 
@@ -91,7 +94,7 @@ const MissionSection = () => {
                     transition: 'transform 0.3s ease-in-out' 
                   }}
                 >
-                  {mobileImages.map((image) => (
+                  {carouselImages.map((image) => (
                     <div
                       key={image.id}
                       className="min-w-full relative"
@@ -122,7 +125,7 @@ const MissionSection = () => {
 
               {/* Dots Indicator */}
               <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex space-x-2">
-                {mobileImages.map((_, index) => (
+                {carouselImages.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => {

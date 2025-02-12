@@ -1,7 +1,7 @@
 // components/layout/MobileNavigation/index.js
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Menu, X, Home, Gift, Users, Trophy, Heart, Building2, MessageCircle, Calendar } from 'lucide-react';
+import { LayoutGrid, X, Home, Gift, Users, Trophy, Heart, Building2, MessageCircle, Calendar } from 'lucide-react';
 
 const MobileNavigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,7 +40,7 @@ const MobileNavigation = () => {
         {isOpen ? (
           <X className="w-6 h-6 text-[#2C2C2C]" />
         ) : (
-          <Menu className="w-6 h-6 text-[#2C2C2C]" />
+          <LayoutGrid className="w-6 h-6 text-[#2C2C2C]" />
         )}
       </button>
 

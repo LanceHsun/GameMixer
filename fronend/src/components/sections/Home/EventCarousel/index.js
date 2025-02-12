@@ -10,19 +10,19 @@ const EventCarousel = () => {
     {
       title: 'Weekly Board Game Socials',
       description: 'Every Saturday, 80-120 participants connect through curated games that spark laughter, collaboration, and friendships.',
-      image: paths.getImagePath('picture/hero.avif'),
+      image: paths.getImagePath('picture/event1.jpg'),
       link: paths.getRoutePath('/events/weekly-socials')
     },
     {
       title: 'Monthly Tournament',
       description: 'Join our competitive yet friendly tournament series featuring strategy games and exciting prizes.',
-      image: paths.getImagePath('picture/hero.avif'),
+      image: paths.getImagePath('picture/event2.jpg'),
       link: paths.getRoutePath('/events/tournaments')
     },
     {
       title: 'Family Game Day',
       description: 'A special monthly event designed for families to bond over board games and create lasting memories.',
-      image: paths.getImagePath('picture/hero.avif'),
+      image: paths.getImagePath('picture/event3.jpg'),
       link: paths.getRoutePath('/events/family-day')
     }
   ];

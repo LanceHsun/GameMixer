@@ -1,294 +1,222 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, MapPin, Plus, Pencil, Trash2, Search } from 'lucide-react';
-import EventFormModal from '../EventForm';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { eventService } from '../../../../services/api';
+import Button from '../../../../components/common/Button';
+import { Input } from '../../../../components/common/Input';
+import { checkAuthError, validateToken } from '../../utils/auth-utils';
 
 const AdminEventsDashboard = () => {
+  const navigate = useNavigate();
   const [events, setEvents] = useState({ upcoming: [], past: [] });
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [activeTab, setActiveTab] = useState('upcoming');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTag, setSelectedTag] = useState('');
+  const [tags, setTags] = useState([]);
 
-  const fetchEvents = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/events',  {
-        headers: {
-          'Accept': 'application/json'
-        }
+  const checkAuth = useCallback(() => {
+    if (!validateToken()) {
+      navigate('/admin/login', { 
+        state: { from: { pathname: '/admin/dashboard' } },
+        replace: true 
       });
-      if (!response.ok) {
-        throw new Error('Failed to fetch events');
+      return false;
+    }
+    return true;
+  }, [navigate]);
+
+  const fetchTags = useCallback(async () => {
+    try {
+      if (!checkAuth()) return;
+      const response = await eventService.getEventTags();
+      setTags(Array.isArray(response) ? response : []);
+    } catch (err) {
+      if (!checkAuthError(err, navigate)) {
+        console.error('Error fetching tags:', err);
+        setTags([]);
       }
-      const data = await response.json();
+    }
+  }, [navigate, checkAuth]);
+
+  const fetchEvents = useCallback(async () => {
+    if (!checkAuth()) return;
+    
+    setLoading(true);
+    try {
+      const data = await eventService.getAllEvents(selectedTag);
       setEvents(data);
-    } catch (error) {
-      setError('Error loading events: ' + error.message);
-      console.error('Error fetching events:', error);
+      setError(null);
+    } catch (err) {
+      if (!checkAuthError(err, navigate)) {
+        setError('Error loading events: Failed to fetch events');
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedTag, navigate, checkAuth]);
 
   useEffect(() => {
     fetchEvents();
-  }, []);
+    fetchTags();
+  }, [fetchEvents, fetchTags]);
 
-  const handleCreateEvent = async (formData) => {
-    try {
-      const response = await fetch('/admin/events', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create event');
-      }
-
-      await fetchEvents(); // Refresh the events list
-      setIsCreateModalOpen(false);
-    } catch (error) {
-      setError('Error creating event: ' + error.message);
-      console.error('Error creating event:', error);
+  const handleEditEvent = (eventId) => {
+    if (checkAuth()) {
+      navigate(`/admin/events/edit/${eventId}`);
     }
   };
 
-  const handleUpdateEvent = async (eventId, formData) => {
-    try {
-      const response = await fetch(`/admin/events/${eventId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify(formData)
-      });
+  const handleDeleteEvent = async (id) => {
+    if (!checkAuth()) return;
 
-      if (!response.ok) {
-        throw new Error('Failed to update event');
-      }
-
-      await fetchEvents(); // Refresh the events list
-      setIsEditModalOpen(false);
-      setSelectedEvent(null);
-    } catch (error) {
-      setError('Error updating event: ' + error.message);
-      console.error('Error updating event:', error);
-    }
-  };
-
-  const handleDeleteEvent = async (eventId) => {
-    if (!window.confirm('Are you sure you want to delete this event?')) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/admin/events/${eventId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+    if (window.confirm('Are you sure you want to delete this event?')) {
+      try {
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+          throw new Error('No authentication token found');
         }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete event');
+        await eventService.deleteEvent(id, token);
+        await fetchEvents();
+        setError(null);
+      } catch (err) {
+        if (!checkAuthError(err, navigate)) {
+          console.error('Delete error:', err);
+          setError('Error deleting event: ' + (err.message || 'Unknown error'));
+        }
       }
+    }
+  };
 
-      await fetchEvents(); // Refresh the events list
-    } catch (error) {
-      setError('Error deleting event: ' + error.message);
-      console.error('Error deleting event:', error);
+  const handleCreateEvent = () => {
+    if (checkAuth()) {
+      navigate('/admin/events/new');
     }
   };
 
   const filteredEvents = {
-    upcoming: events.upcoming?.filter(event =>
-      event.title.toLowerCase().includes(searchTerm.toLowerCase())
+    upcoming: events.upcoming?.filter(event => 
+      event.title.toLowerCase().includes(searchQuery.toLowerCase())
     ) || [],
-    past: events.past?.filter(event =>
-      event.title.toLowerCase().includes(searchTerm.toLowerCase())
+    past: events.past?.filter(event => 
+      event.title.toLowerCase().includes(searchQuery.toLowerCase())
     ) || []
   };
 
-  const EventCard = ({ event, type }) => (
-    <div className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow">
-      <div className="flex justify-between items-start">
-        <div className="space-y-2 flex-1">
-          <h3 className="text-lg font-semibold text-gray-900">{event.title}</h3>
-          
-          <div className="space-y-1">
-            <div className="flex items-center text-gray-600">
-              <Calendar className="w-4 h-4 mr-2" />
-              <span className="text-sm">
-                {new Date(event.startTime).toLocaleDateString()}
-              </span>
-            </div>
-            
-            <div className="flex items-center text-gray-600">
-              <Clock className="w-4 h-4 mr-2" />
-              <span className="text-sm">
-                {new Date(event.startTime).toLocaleTimeString()} - 
-                {new Date(event.endTime).toLocaleTimeString()}
-              </span>
-            </div>
-            
-            <div className="flex items-center text-gray-600">
-              <MapPin className="w-4 h-4 mr-2" />
-              <span className="text-sm">{event.location}</span>
-            </div>
-          </div>
-
-          {event.tags && event.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {event.tags.map((tag, index) => (
-                <span 
-                  key={index}
-                  className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
+  const EventCard = ({ event }) => (
+    <div className="bg-white rounded-lg shadow-md p-4 mb-4">
+      <h3 className="text-xl font-semibold mb-2">{event.title}</h3>
+      <p className="text-gray-600 mb-2">{event.subtitle}</p>
+      <p className="text-sm text-gray-500 mb-2">
+        {new Date(event.startTime).toLocaleDateString()} - 
+        {new Date(event.endTime).toLocaleDateString()}
+      </p>
+      {event.tags && event.tags.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-3">
+          {event.tags.map((tag, index) => (
+            <span 
+              key={index}
+              className="inline-block bg-gray-100 rounded-full px-3 py-1 text-sm font-semibold text-gray-700"
+            >
+              {tag}
+            </span>
+          ))}
         </div>
-
-        <div className="flex gap-2">
-          <button
-            onClick={() => {
-              setSelectedEvent(event);
-              setIsEditModalOpen(true);
-            }}
-            className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
-            aria-label="Edit event"
-          >
-            <Pencil className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => handleDeleteEvent(event.id)}
-            className="p-2 text-red-600 hover:bg-red-50 rounded-full"
-            aria-label="Delete event"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
+      )}
+      <div className="flex gap-2">
+        <Button 
+          onClick={() => handleEditEvent(event.id)}
+          className="bg-blue-500 hover:bg-blue-600 text-white"
+        >
+          Edit
+        </Button>
+        <Button 
+          onClick={() => handleDeleteEvent(event.id)}
+          className="bg-red-500 hover:bg-red-600 text-white"
+        >
+          Delete
+        </Button>
       </div>
     </div>
   );
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* Header */}
+    <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Event Management</h1>
-          <p className="text-gray-600">Manage all your events in one place</p>
-        </div>
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-2 bg-[#FFD200] text-[#2C2C2C] px-4 py-2 rounded-lg hover:bg-[#FFE566] transition-colors"
+        <h1 className="text-2xl font-bold">Event Management</h1>
+        <Button 
+          onClick={handleCreateEvent}
+          className="bg-[#FFD200] hover:bg-[#FFE566] text-[#2C2C2C]"
         >
-          <Plus className="w-4 h-4" />
-          Create Event
-        </button>
+          + Create Event
+        </Button>
       </div>
 
-      {/* Error Message */}
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-400 text-red-700">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
 
-      {/* Search and Filters */}
-      <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search events..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFD200] focus:border-transparent"
-          />
-        </div>
+      <div className="mb-6 flex gap-4">
+        <Input
+          type="text"
+          placeholder="Search events..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="max-w-sm"
+        />
+        <select
+          value={selectedTag}
+          onChange={(e) => setSelectedTag(e.target.value)}
+          className="border rounded p-2 focus:border-[#FFD200] focus:ring-[#FFD200]"
+        >
+          <option value="">All Tags</option>
+          {Array.isArray(tags) && tags.map(tag => (
+            <option key={tag} value={tag}>{tag}</option>
+          ))}
+        </select>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-4 mb-6 border-b">
-        <button
-          onClick={() => setActiveTab('upcoming')}
-          className={`pb-2 px-1 ${
-            activeTab === 'upcoming'
-              ? 'border-b-2 border-[#FFD200] text-[#2C2C2C]'
-              : 'text-gray-500'
-          }`}
-        >
-          Upcoming Events ({filteredEvents.upcoming.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('past')}
-          className={`pb-2 px-1 ${
-            activeTab === 'past'
-              ? 'border-b-2 border-[#FFD200] text-[#2C2C2C]'
-              : 'text-gray-500'
-          }`}
-        >
-          Past Events ({filteredEvents.past.length})
-        </button>
-      </div>
-
-      {/* Event List */}
       {loading ? (
-        <div className="text-center py-12">
-          <div className="w-12 h-12 border-4 border-[#FFD200] border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading events...</p>
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading events...</p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {activeTab === 'upcoming' ? (
-            filteredEvents.upcoming.length > 0 ? (
-              filteredEvents.upcoming.map(event => (
-                <EventCard key={event.id} event={event} type="upcoming" />
-              ))
-            ) : (
-              <p className="text-center text-gray-500 py-12">No upcoming events found</p>
-            )
-          ) : (
-            filteredEvents.past.length > 0 ? (
-              filteredEvents.past.map(event => (
-                <EventCard key={event.id} event={event} type="past" />
-              ))
-            ) : (
-              <p className="text-center text-gray-500 py-12">No past events found</p>
-            )
-          )}
+        <div>
+          <section className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">
+              Upcoming Events ({filteredEvents.upcoming.length})
+            </h2>
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              {filteredEvents.upcoming.map(event => (
+                <EventCard key={event.id} event={event} />
+              ))}
+              {filteredEvents.upcoming.length === 0 && (
+                <div className="col-span-full text-center py-8 text-gray-500">
+                  No upcoming events found
+                </div>
+              )}
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold mb-4">
+              Past Events ({filteredEvents.past.length})
+            </h2>
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              {filteredEvents.past.map(event => (
+                <EventCard key={event.id} event={event} />
+              ))}
+              {filteredEvents.past.length === 0 && (
+                <div className="col-span-full text-center py-8 text-gray-500">
+                  No past events found
+                </div>
+              )}
+            </div>
+          </section>
         </div>
       )}
-
-      {/* Create Event Modal */}
-      <EventFormModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSubmit={handleCreateEvent}
-      />
-
-      {/* Edit Event Modal */}
-      <EventFormModal
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedEvent(null);
-        }}
-        event={selectedEvent}
-        onSubmit={(formData) => handleUpdateEvent(selectedEvent.id, formData)}
-      />
     </div>
   );
 };

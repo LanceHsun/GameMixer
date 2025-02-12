@@ -6,25 +6,23 @@ import ExternalLinksSection from './ExternalLinksSection';
 import { X } from 'lucide-react';
 
 const EventFormModal = ({ isOpen, onClose, event = null, onSubmit }) => {
-  // 使用 useMemo 来记忆 initialFormState
-  const initialFormState = useMemo(() => ({
-    title: '',
-    subtitle: '',
-    description: '',
-    location: '',
-    startTime: '',
-    endTime: '',
-    mainPicture: '',
-    pictures: [],
-    tags: [],
-    video: '',
-    links: {
-      registration: { title: '', url: '' },
-      location: { title: '', url: '' },
-      additionalInfo: []
-    }
-  }), []); // 空依赖数组，因为这个对象不需要变化
-
+    const initialFormState = useMemo(() => ({
+        title: '',
+        subtitle: '',
+        description: '',
+        location: '',
+        startTime: '',
+        endTime: '',
+        mainPicture: '',
+        pictures: [],
+        tags: [],
+        video: '',
+        links: {
+          registration: { title: '', url: '' },
+          additionalInfo: []
+        }
+      }), []);
+      
   const [formData, setFormData] = useState(initialFormState);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -37,13 +35,14 @@ const EventFormModal = ({ isOpen, onClose, event = null, onSubmit }) => {
         endTime: formatDateTimeForInput(event.endTime),
         tags: event.tags || [],
         pictures: event.pictures || [],
-        links: event.links || initialFormState.links
+        links: event.links || initialFormState.links,
+        video: event.video || ''
       };
       setFormData(formattedEvent);
     } else {
       setFormData(initialFormState);
     }
-  }, [event, isOpen, initialFormState]); // 添加 initialFormState 作为依赖
+  }, [event, isOpen, initialFormState]);
 
   const formatDateTimeForInput = (dateTimeStr) => {
     if (!dateTimeStr) return '';
@@ -74,27 +73,34 @@ const EventFormModal = ({ isOpen, onClose, event = null, onSubmit }) => {
       const submitData = {
         ...formData,
         startTime: new Date(formData.startTime).toISOString(),
-        endTime: new Date(formData.endTime).toISOString()
+        endTime: new Date(formData.endTime).toISOString(),
       };
 
       // Clean up empty links
       const cleanedLinks = {
-        ...(submitData.links.registration?.url && {
+        ...(submitData.links?.registration?.url && {
           registration: submitData.links.registration
         }),
-        ...(submitData.links.location?.url && {
-          location: submitData.links.location
+        ...(submitData.links?.report?.url && {
+          report: {
+            title: 'View Report',
+            url: submitData.links.report.url
+          }
         }),
-        additionalInfo: submitData.links.additionalInfo.filter(
-          link => link.title && link.url
+        additionalInfo: (submitData.links?.additionalInfo || []).filter(
+          link => link?.title && link?.url
         )
       };
 
+      // Set video URL at root level
+      submitData.video = submitData.links?.video?.url || '';
       submitData.links = cleanedLinks;
+
       await onSubmit(submitData);
       onClose();
     } catch (error) {
       console.error('Error submitting event:', error);
+      throw error;
     } finally {
       setLoading(false);
     }

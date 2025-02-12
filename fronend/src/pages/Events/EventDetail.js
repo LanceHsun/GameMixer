@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import PhotoModal from '../../components/common/PhotoModal';
+import { eventService } from '../../services/api';
+import getDirectImageUrl from '../../utils/getDirectImageUrl';
 
 const PhotoGallery = ({ images, onPhotoClick }) => {
   const visibleImages = images.slice(0, 6);
@@ -16,9 +18,13 @@ const PhotoGallery = ({ images, onPhotoClick }) => {
           className="relative aspect-square rounded-lg overflow-hidden group"
         >
           <img
-            src={image.url}
-            alt={image.alt}
+            src={getDirectImageUrl(image.url || image)}
+            alt={image.alt || `Photo ${index + 1}`}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            onError={(e) => {
+              console.error(`Failed to load photo ${index + 1}`);
+              e.target.src = '/default-event-image.jpg';
+            }}
           />
           {index === 5 && remainingCount > 0 && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -34,117 +40,47 @@ const PhotoGallery = ({ images, onPhotoClick }) => {
 };
 
 const EventDetailPage = () => {
-  const { eventSlug } = useParams();
+  const { eventId } = useParams();
+  const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Event details mapping based on slug
-  const eventDetailsMap = {
-    'board-game-social': {
-      title: "Board Game Social",
-      image: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/1B3076C5-8DC7-49E1-9612-9010F90E813E_1_102_a.jpeg",
-      date: "Saturday, January 29",
-      time: "3:00 PM - 6:00 PM",
-      location: "San Jose",
-      description: "Whether you're new to board games or a seasoned pro, our three-hour Game Mixer Board Game Social and our dinner gatherings are must-have experiences in your social calendar.\n\nAt Game Mixer, you'll discover an array of classic games that never lose their charm, alongside simple, joyful, and easy-to-learn picks recommended by our enthusiastic hosts. We also love to keep things exciting with a steady stream of new games added regularly. Join us for endless fun, great company, and the perfect blend of social and gaming excitement!\n\nNo experience required.\n\nCome and enjoy the fun, relaxing and diverse board games.",
-      host: {
-        name: "Game Mixer",
-        image: process.env.PUBLIC_URL + "/images/Game-mixer-logo.avif"
-      },
-      photos: [
-        {
-          url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/1B3076C5-8DC7-49E1-9612-9010F90E813E_1_102_a.jpeg",
-          alt: "Board game session 1",
-          description: "Board game social gathering"
-        },
-        {
-          url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/005.png",
-          alt: "Board game session 2",
-          description: "Players enjoying board games"
-        },
-        {
-          url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/6F42AF28-A052-49F9-BC2E-7AD384D50F93_1_102_a.jpeg",
-          alt: "Board game session 3",
-          description: "Game night fun"
-        },
-        {
-          url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/009.png",
-          alt: "Board game session 4",
-          description: "Community gaming event"
-        },
-        {
-          url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/IMG_0007.HEIC",
-          alt: "Board game session 5",
-          description: "Strategy game session"
-        },
-        {
-          url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/IMG_9594.PNG",
-          alt: "Board game session 6",
-          description: "Group playing games"
-        },
-        {
-          url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/IMG_9620.PNG",
-          alt: "Board game session 7",
-          description: "Game night highlights"
+  useEffect(() => {
+    const fetchEventDetails = async () => {
+      try {
+        setLoading(true);
+        const eventData = await eventService.getEventById(eventId);
+
+        if (eventData.video) {
+          window.location.href = eventData.video;
+          return;
         }
-      ]
-    },
-    'summer-bash-2025': {
-        title: "Board Game Social",
-        image: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/1B3076C5-8DC7-49E1-9612-9010F90E813E_1_102_a.jpeg",
-        date: "Saturday, January 29",
-        time: "3:00 PM - 6:00 PM",
-        location: "San Jose",
-        description: "Whether you're new to board games or a seasoned pro, our three-hour Game Mixer Board Game Social and our dinner gatherings are must-have experiences in your social calendar.\n\nAt Game Mixer, you'll discover an array of classic games that never lose their charm, alongside simple, joyful, and easy-to-learn picks recommended by our enthusiastic hosts. We also love to keep things exciting with a steady stream of new games added regularly. Join us for endless fun, great company, and the perfect blend of social and gaming excitement!\n\nNo experience required.\n\nCome and enjoy the fun, relaxing and diverse board games.",
-        host: {
-          name: "Game Mixer",
-          image: process.env.PUBLIC_URL + "/images/Game-mixer-logo.avif"
-        },
-        photos: [
-          {
-            url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/1B3076C5-8DC7-49E1-9612-9010F90E813E_1_102_a.jpeg",
-            alt: "Board game session 1",
-            description: "Board game social gathering"
-          },
-          {
-            url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/005.png",
-            alt: "Board game session 2",
-            description: "Players enjoying board games"
-          },
-          {
-            url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/6F42AF28-A052-49F9-BC2E-7AD384D50F93_1_102_a.jpeg",
-            alt: "Board game session 3",
-            description: "Game night fun"
-          },
-          {
-            url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/009.png",
-            alt: "Board game session 4",
-            description: "Community gaming event"
-          },
-          {
-            url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/IMG_0007.HEIC",
-            alt: "Board game session 5",
-            description: "Strategy game session"
-          },
-          {
-            url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/IMG_9594.PNG",
-            alt: "Board game session 6",
-            description: "Group playing games"
-          },
-          {
-            url: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/IMG_9620.PNG",
-            alt: "Board game session 7",
-            description: "Game night highlights"
-          }
-        ]
+
+        const reportLink = eventData.links?.additionalInfo?.find(
+          link => link.title.toLowerCase().includes('report')
+        );
+        if (reportLink) {
+          window.location.href = reportLink.url;
+          return;
+        }
+
+        setEvent(eventData);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching event details:', err);
+        setError('Failed to load event details. Please try again later.');
+      } finally {
+        setLoading(false);
       }
-  };
+    };
 
-  const eventDetails = eventDetailsMap[eventSlug];
-
-  if (!eventDetails) {
-    return <div>Event not found</div>;
-  }
+    if (eventId) {
+      fetchEventDetails();
+    }
+  }, [eventId, navigate]);
 
   const handlePhotoClick = (index) => {
     setCurrentPhotoIndex(index);
@@ -153,7 +89,7 @@ const EventDetailPage = () => {
 
   const handleNextPhoto = () => {
     setCurrentPhotoIndex(prev => 
-      prev < eventDetails.photos.length - 1 ? prev + 1 : prev
+      prev < (event?.pictures?.length || 0) - 1 ? prev + 1 : prev
     );
   };
 
@@ -161,88 +97,202 @@ const EventDetailPage = () => {
     setCurrentPhotoIndex(prev => prev > 0 ? prev - 1 : prev);
   };
 
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Event Title */}
-      <h1 className="text-4xl font-bold text-center mb-8">{eventDetails.title}</h1>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#FFD200] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="mt-4 text-[#2C2C2C]">Loading event details...</p>
+        </div>
+      </div>
+    );
+  }
 
-      {/* Event Image */}
-      <div className="rounded-xl overflow-hidden mb-8">
-        <img
-          src={eventDetails.image}
-          alt={eventDetails.title}
-          className="w-full h-auto"
-        />
+  if (error || !event) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center text-red-600">
+          <p>{error || 'Event not found'}</p>
+          <Link 
+            to="/events"
+            className="mt-4 inline-block bg-[#FFD200] text-[#2C2C2C] px-6 py-2 rounded-lg hover:bg-[#FFE566]"
+          >
+            Back to Events
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const formattedPhotos = event.pictures?.map((url, index) => ({
+    url: getDirectImageUrl(url) || '/default-event-image.jpg',
+    alt: `${event.title} - Photo ${index + 1}`,
+    description: `Photo ${index + 1} of ${event.pictures.length}`
+  })) || [];
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-6">
+      {/* Header Section - Centered */}
+      <div className="text-center mb-6">
+        {/* Tags */}
+        {event.tags && event.tags.length > 0 && (
+          <div className="flex justify-center gap-4 mb-3">
+            {event.tags.map(tag => (
+              <span key={tag} className="bg-gray-100 px-4 py-1 rounded-full text-sm text-gray-600">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Title and Subtitle */}
+        <h1 className="text-4xl font-bold mb-2">{event.title}</h1>
+        {event.subtitle && (
+          <p className="text-xl text-gray-600 mb-4">{event.subtitle}</p>
+        )}
+
+        {/* Host Information */}
+        {event.host && (
+          <div className="flex items-center justify-center gap-3">
+            <p className="text-gray-600">Hosted by</p>
+            <div className="flex items-center gap-2">
+              <div className="bg-[#FFD200] p-1 rounded-lg">
+                <img
+                  src={getDirectImageUrl(event.host.image) || '/default-host-image.jpg'}
+                  alt={event.host.name}
+                  className="w-8 h-8 object-contain"
+                  onError={(e) => {
+                    e.target.src = '/default-host-image.jpg';
+                  }}
+                />
+              </div>
+              <span className="font-medium text-[#2C2C2C]">
+                {event.host.name}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
+      {/* Main Image */}
+      {event.mainPicture && (
+        <div className="mb-6 rounded-xl overflow-hidden max-h-[300px] max-w-xl mx-auto">
+          <img
+            src={getDirectImageUrl(event.mainPicture) || '/default-event-image.jpg'}
+            alt={event.title}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.target.src = '/default-event-image.jpg';
+            }}
+          />
+        </div>
+      )}
+
       {/* Event Details */}
-      <div className="space-y-6 mb-8">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-[#2C2C2C]" />
-          <span className="text-lg">{eventDetails.date}</span>
-          <Clock className="w-5 h-5 text-[#2C2C2C] ml-4" />
-          <span className="text-lg">{eventDetails.time}</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <MapPin className="w-5 h-5 text-[#2C2C2C]" />
-          <span className="text-lg">{eventDetails.location}</span>
-        </div>
-
-        {/* Host Information - Updated with new style */}
-        <div className="flex items-center gap-3">
-          <p className="text-gray-600">Hosted by</p>
+      <div className="prose max-w-xl mx-auto mb-8">
+        {/* Date and Time */}
+        <div className="flex flex-wrap justify-center gap-6 mb-4">
           <div className="flex items-center gap-2">
-            <div className="bg-[#FFD200] p-1 rounded-lg">
-              <img
-                src={eventDetails.host.image}
-                alt={eventDetails.host.name}
-                className="w-8 h-8 object-contain"
-              />
-            </div>
-            <span className="font-medium text-[#2C2C2C]">
-              {eventDetails.host.name}
+            <Calendar className="w-5 h-5 text-[#2C2C2C]" />
+            <span className="text-lg">
+              {new Date(event.startTime).toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Clock className="w-5 h-5 text-[#2C2C2C]" />
+            <span className="text-lg">
+              {new Date(event.startTime).toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit'
+              })} - {
+              new Date(event.endTime).toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit'
+              })}
             </span>
           </div>
         </div>
 
-        {/* Terms and Conditions Link */}
-        <div>
-          <Link to="/terms" className="text-[#6B90FF] hover:underline">
-            Terms and conditions
-          </Link>
-        </div>
+        {/* Location */}
+        {event.location && (
+          <div className="flex justify-center items-center gap-2 mb-4">
+            <MapPin className="w-5 h-5 text-[#2C2C2C]" />
+            <span className="text-lg">{event.location}</span>
+          </div>
+        )}
 
-        {/* Event Description */}
-        <p className="text-lg text-[#2C2C2C]/80 leading-relaxed whitespace-pre-line">
-          {eventDetails.description}
-        </p>
+        {/* Event Links */}
+        {event.links && (
+          <div className="mb-4 text-center">
+            <div className="flex flex-wrap justify-center gap-4">
+              {event.links.additionalInfo?.filter(link => 
+                !link.title.toLowerCase().includes('report') && 
+                !link.url.includes('video')
+              ).map((link, index) => (
+                <a
+                  key={index}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors px-4 py-2"
+                >
+                  <span className="bg-blue-100 p-2 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </span>
+                  {link.title}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
 
-        {/* Register Button */}
-        <div className="text-center">
-          <button className="bg-[#FFD200] text-[#2C2C2C] px-8 py-3 rounded-lg font-bold hover:bg-[#FFE566] transition-colors">
-            Register Now
-          </button>
-        </div>
+        {/* Description */}
+        {event.description && (
+          <div className="whitespace-pre-line text-lg text-gray-700 leading-relaxed">
+            {event.description}
+          </div>
+        )}
+
+        {/* Registration Button */}
+        {event.links?.registration && (
+          <div className="text-center mt-6">
+            <a
+              href={event.links.registration.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#FFD200] text-[#2C2C2C] px-8 py-3 rounded-lg font-bold hover:bg-[#FFE566] transition-colors inline-block"
+            >
+              Register Now
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Photo Album */}
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold">Photo Album</h2>
-        <PhotoGallery 
-          images={eventDetails.photos} 
-          onPhotoClick={handlePhotoClick}
-        />
-      </div>
+      {event.pictures && event.pictures.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-2xl font-bold">Photo Album</h2>
+          <PhotoGallery 
+            images={formattedPhotos} 
+            onPhotoClick={handlePhotoClick}
+          />
+        </div>
+      )}
 
       {/* Photo Modal */}
       <PhotoModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        currentPhoto={eventDetails.photos[currentPhotoIndex]}
+        currentPhoto={formattedPhotos[currentPhotoIndex]}
         onNext={handleNextPhoto}
         onPrevious={handlePreviousPhoto}
-        photos={eventDetails.photos}
+        photos={formattedPhotos}
         currentIndex={currentPhotoIndex}
       />
     </div>

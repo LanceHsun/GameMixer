@@ -41,7 +41,7 @@ const CallToAction = () => {
             <div className="absolute left-0 -top-4 w-[240px] aspect-[4/3] rounded-lg shadow-md overflow-hidden 
                           transform -rotate-6 origin-bottom-left hover:rotate-0 transition-transform duration-300">
               <img 
-                src={process.env.PUBLIC_URL + "/images/picture/hero.avif"}
+                src={process.env.PUBLIC_URL + "/images/picture/play1.JPG"}
                 alt="Board game hero"
                 className="w-full h-full object-cover"
               />
@@ -50,7 +50,7 @@ const CallToAction = () => {
             <div className="absolute right-0 top-8 w-[240px] aspect-[4/3] rounded-lg shadow-md overflow-hidden
                           hover:transform hover:scale-105 transition-transform duration-300">
               <img 
-                src={process.env.PUBLIC_URL + "/images/picture/hero.avif"}
+                src={process.env.PUBLIC_URL + "/images/picture/play2.jpg"}
                 alt="Board game hero"
                 className="w-full h-full object-cover"
               />

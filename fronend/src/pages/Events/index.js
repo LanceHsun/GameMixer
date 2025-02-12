@@ -1,186 +1,168 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PromotionalCarousel from '../../components/PromotionalCarousel';
+import { eventService } from '../../services/api';
+import getDirectImageUrl from '../../utils/getDirectImageUrl';
 
 const EventsPage = () => {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('All');
+  const [events, setEvents] = useState({ upcoming: [], past: [] });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [tags, setTags] = useState([]);
 
-  const promotionalEvents = [
-    {
-      id: 1,
-      title: "Board Game Social",
-      location: "San Jose",
-      date: "Saturday, January 29",
-      image: process.env.PUBLIC_URL + "/images/picture/weeklyboardgame/1B3076C5-8DC7-49E1-9612-9010F90E813E_1_102_a.jpeg",
-      slug: "board-game-social"
-    },
-    {
-      id: 2,
-      title: "Game Mixer's Ultimate Summer Bash!",
-      location: "San Jose",
-      date: "Tuesday, Jan 28",
-      image: process.env.PUBLIC_URL + "/images/picture/Summer_Bash.jpg",
-      slug: "summer-bash-2025"
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [eventsData, tagsData] = await Promise.all([
+          eventService.getAllEvents(activeFilter !== 'All' ? activeFilter : ''),
+          eventService.getEventTags()
+        ]);
+        
+        setEvents(eventsData);
+        setTags(['All', ...(Array.isArray(tagsData) ? tagsData : [])]);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching events:', err);
+        setError('Failed to load events. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [activeFilter]);
+
+  const promotionalEvents = events.upcoming?.map(event => ({
+    id: event.id,
+    title: event.title,
+    location: event.location,
+    date: new Date(event.startTime).toLocaleDateString(),
+    time: new Date(event.startTime).toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit'
+    }),
+    image: getDirectImageUrl(event.mainPicture) || '/default-event-image.jpg',
+    slug: event.id
+  })) || [];
+
+  const handlePastEventClick = async (event) => {
+    try {
+      const eventDetails = await eventService.getEventById(event.id);
+      
+      if (eventDetails.video) {
+        window.location.href = eventDetails.video;
+        return;
+      }
+      
+      const reportLink = eventDetails.links?.additionalInfo?.find(
+        link => link.title.toLowerCase().includes('report')
+      );
+      
+      if (reportLink) {
+        window.location.href = reportLink.url;
+        return;
+      }
+      
+      navigate(`/events/past/${event.id}`);
+    } catch (err) {
+      console.error('Error handling past event click:', err);
+      navigate(`/events/past/${event.id}`);
     }
-  ];
+  };
 
-  const filterTabs = [
-    'All', 'BoardGameSocial', 'UltimateSummerBash', 'Social, Charity, and Community'
-  ];
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#FFD200] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="mt-4 text-[#2C2C2C]">Loading events...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const pastEvents = [
-    {
-      id: 1,
-      title: "Game Mixer's Ultimate Summer Bash!",
-      location: 'San Jose',
-      date: 'Sat, July 15',
-      image: process.env.PUBLIC_URL + "/images/picture/barbecue/WOO_2469.JPG",
-      promoted: true
-    },
-    {
-      id: 2,
-      title: <span><strong>B</strong>oard-<strong>G</strong>ame <strong>T</strong>ournament</span>,
-      location: 'San Jose',
-      date: 'Thu, Feb 13',
-      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/003.JPG"
-    },
-    {
-      id: 3,
-      title: <span><strong>W</strong>inery in the <strong>S</strong>ummer</span>,
-      location: 'San Jose',
-      date: 'Sat, Feb 1',
-      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/004.jpg"
-    },
-    {
-      id: 4,
-      title: <span><strong>H</strong>an-<strong>S</strong>tyle <strong>C</strong>lothes <strong>G</strong>ala</span>,
-      location: 'San Jose',
-      date: 'Sat, Feb 1',
-      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/005.jpg"
-    },
-    {
-      id: 5,
-      title: <span><strong>L</strong>unar <strong>N</strong>ew <strong>Y</strong>ear <strong>F</strong>estival <strong>C</strong>upertino</span>,
-      location: 'Cupertino',
-      date: 'Sat, Feb 1',
-      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/007.JPG"
-    },
-    {
-      id: 6,
-      title: <span><strong>H</strong>alloween <strong>C</strong>arnival</span>,
-      location: 'San Jose',
-      date: 'Sat, Feb 1',
-      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/010.jpg"
-    },
-    {
-      id: 7,
-      title: <span><strong>S</strong>vief <strong>C</strong>onvention</span>,
-      location: 'Santa Clara',
-      date: 'Sat, Feb 1',
-      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/Layla.JPG"
-    },
-    {
-      id: 8,
-      title: <span><strong>C</strong>upertino <strong>G</strong>ame <strong>N</strong>ight</span>,
-      location: 'Cupertino',
-      date: 'Sat, Feb 1',
-      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/rc2.jpg"
-    },
-    {
-      id: 9,
-      title: <span><strong>L</strong>abor <strong>D</strong>ay <strong>B</strong>bq</span>,
-      location: 'San Jose',
-      date: 'Sat, Feb 1',
-      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/003.JPG"
-    },
-    {
-      id: 10,
-      title: <span><strong>W</strong>inery <strong>P</strong>arty</span>,
-      location: 'San Jose',
-      date: 'Sat, Feb 1',
-      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/004.jpg"
-    },
-    {
-      id: 11,
-      title: <span><strong>C</strong>upertino <strong>G</strong>ame <strong>N</strong>ight</span>,
-      location: 'Cupertino',
-      date: 'Sat, Feb 1',
-      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/007 (1).jpg"
-    },
-    {
-      id: 12,
-      title: <span><strong>B</strong>bq in <strong>M</strong>ay</span>,
-      location: 'San Jose',
-      date: 'Sat, Feb 1',
-      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/005.jpg"
-    },
-    {
-      id: 13,
-      title: <span><strong>S</strong>anta <strong>C</strong>lara <strong>C</strong>ounty 5<strong>k</strong> <strong>R</strong>un</span>,
-      location: 'Santa Clara',
-      date: 'Sat, Feb 1',
-      image: process.env.PUBLIC_URL + "/images/picture/pastevent_main_picture/010.jpg"
-    }
-];
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center text-red-600">
+          <p>{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-4 bg-[#FFD200] text-[#2C2C2C] px-6 py-2 rounded-lg hover:bg-[#FFE566]"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Promotional Events Carousel */}
-      <PromotionalCarousel events={promotionalEvents} />
+      {promotionalEvents.length > 0 && (
+        <div className="w-full max-w-[1920px] mx-auto h-[300px] md:h-[450px] mb-4 sm:mb-8">
+          <PromotionalCarousel events={promotionalEvents} />
+        </div>
+      )}
 
-      {/* Past Events Section */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Filter Tabs */}
-        <div className="overflow-x-auto mb-8">
-          <div className="flex space-x-6 min-w-max">
-            {filterTabs.map((tab) => (
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
+        <div className="overflow-x-auto mb-4 sm:mb-8">
+          <div className="flex space-x-3 sm:space-x-6 min-w-max">
+            {tags.map((tag) => (
               <button
-                key={tab}
-                onClick={() => setActiveFilter(tab)}
-                className={`px-4 py-2 rounded-full transition-colors ${
-                  activeFilter === tab
+                key={tag}
+                onClick={() => setActiveFilter(tag)}
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm sm:text-base transition-colors ${
+                  activeFilter === tag
                     ? 'bg-[#FFD200] text-black font-medium'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                {tab}
+                {tag}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Event Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {pastEvents.map((event) => (
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+          {events.past.map((event) => (
             <div 
               key={event.id} 
               className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => navigate(`/events/past/${event.id}`)}
+              onClick={() => handlePastEventClick(event)}
             >
-              <div className="relative h-48">
+              <div className="relative h-32 md:h-48">
                 <img
-                  src={event.image}
-                  alt={typeof event.title === 'string' ? event.title : 'Event'}
-                  className="w-full h-full object-cover"
+                  src={getDirectImageUrl(event.mainPicture) || '/default-event-image.jpg'}
+                  alt={event.title}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  onError={(e) => {
+                    console.error(`Failed to load image for event: ${event.title}`);
+                    e.target.src = '/default-event-image.jpg';
+                  }}
                 />
-                {event.promoted && (
-                  <div className="absolute top-4 left-4 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
+                {event.tags?.includes('promoted') && (
+                  <div className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-green-100 text-green-800 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm">
                     Just added
                   </div>
                 )}
               </div>
-              <div className="p-4">
-                <h3 className="text-xl font-semibold mb-2">{event.title}</h3>
-                <div className="space-y-2 text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    <span>{event.date}</span>
+              <div className="p-1.5 sm:p-4">
+                <h3 className="text-sm sm:text-xl font-semibold mb-1 sm:mb-2 line-clamp-2">
+                  {event.title}
+                </h3>
+                <div className="flex flex-col sm:space-y-2 text-gray-600 text-xs sm:text-base">
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <Calendar className="w-3 sm:w-4 h-3 sm:h-4" />
+                    <span className="truncate">{new Date(event.startTime).toLocaleDateString()}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4" />
-                    <span>{event.location}</span>
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <MapPin className="w-3 sm:w-4 h-3 sm:h-4" />
+                    <span className="truncate">{event.location}</span>
                   </div>
                 </div>
               </div>

@@ -1,5 +1,5 @@
-// components/sections/Home/ContactSection/index.js
 import React, { useState } from 'react';
+import { contactService } from '../../../../services/api';
 
 const ContactSection = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +9,8 @@ const ContactSection = () => {
     category: ''
   });
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState({ type: '', message: '' });
 
   const categories = [
     'Sponsors and Partners',
@@ -17,7 +19,6 @@ const ContactSection = () => {
     'Volunteers',
     'Other'
   ];
-
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,13 +51,34 @@ const ContactSection = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-    console.log('Form submitted:', formData);
-    setFormData({
-      name: '',
-      email: '',
-      message: '',
-      category: ''
-    });
+
+    setIsSubmitting(true);
+    setSubmitStatus({ type: '', message: '' });
+
+    try {
+      await contactService.submitContactForm(formData);
+      
+      setSubmitStatus({
+        type: 'success',
+        message: 'Your message has been sent successfully! We will contact you soon.'
+      });
+      
+      // Reset form after successful submission
+      setFormData({
+        name: '',
+        email: '',
+        message: '',
+        category: ''
+      });
+    } catch (error) {
+      setSubmitStatus({
+        type: 'error',
+        message: 'Failed to send message. Please try again later.'
+      });
+      console.error('Contact form submission error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -69,8 +91,15 @@ const ContactSection = () => {
           <a href="mailto:admin@game-mixer.org" className="text-lg text-[#6B90FF] hover:underline">
             admin@game-mixer.org
           </a>
-          
         </div>
+
+        {submitStatus.message && (
+          <div className={`mb-4 p-4 rounded ${
+            submitStatus.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          }`}>
+            {submitStatus.message}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -140,9 +169,12 @@ const ContactSection = () => {
           <div className="text-center pt-4">
             <button
               type="submit"
-              className="bg-[#FFD200] text-[#2C2C2C] px-10 py-2.5 rounded-lg font-bold hover:bg-[#FFE566] transition-colors"
+              disabled={isSubmitting}
+              className={`bg-[#FFD200] text-[#2C2C2C] px-10 py-2.5 rounded-lg font-bold 
+                ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#FFE566]'} 
+                transition-colors`}
             >
-              SUBMIT
+              {isSubmitting ? 'SUBMITTING...' : 'SUBMIT'}
             </button>
           </div>
         </form>
