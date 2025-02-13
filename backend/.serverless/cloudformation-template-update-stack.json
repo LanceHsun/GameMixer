@@ -23,31 +23,24 @@
         "RetentionInDays": 14
       }
     },
-    "HandleContactLogGroup": {
+    "SubmitContactLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/game-mixer-backend-dev-handleContact",
+        "LogGroupName": "/aws/lambda/game-mixer-backend-dev-submitContact",
         "RetentionInDays": 14
       }
     },
-    "HandleMonetaryDonationLogGroup": {
+    "SubmitMonetaryDonationLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/game-mixer-backend-dev-handleMonetaryDonation",
+        "LogGroupName": "/aws/lambda/game-mixer-backend-dev-submitMonetaryDonation",
         "RetentionInDays": 14
       }
     },
-    "HandleGoodsDonationLogGroup": {
+    "SubmitGoodsDonationLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/game-mixer-backend-dev-handleGoodsDonation",
-        "RetentionInDays": 14
-      }
-    },
-    "VerifyDonationLogGroup": {
-      "Type": "AWS::Logs::LogGroup",
-      "Properties": {
-        "LogGroupName": "/aws/lambda/game-mixer-backend-dev-verifyDonation",
+        "LogGroupName": "/aws/lambda/game-mixer-backend-dev-submitGoodsDonation",
         "RetentionInDays": 14
       }
     },
@@ -169,6 +162,14 @@
                 {
                   "Effect": "Allow",
                   "Action": [
+                    "ses:SendEmail",
+                    "ses:SendRawEmail"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
                     "dynamodb:PutItem",
                     "dynamodb:GetItem",
                     "dynamodb:Query",
@@ -182,14 +183,6 @@
                     "arn:aws:dynamodb:us-west-2:242201288258:table/game-mixer-backend-events-dev",
                     "arn:aws:dynamodb:us-west-2:242201288258:table/game-mixer-backend-events-dev/index/*"
                   ]
-                },
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "ses:SendEmail",
-                    "ses:SendRawEmail"
-                  ],
-                  "Resource": "*"
                 },
                 {
                   "Effect": "Allow",
@@ -225,7 +218,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-          "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
+          "S3Key": "serverless/game-mixer-backend/dev/1739038948215-2025-02-08T18:22:28.215Z/game-mixer-backend.zip"
         },
         "Handler": "src/handlers/adminAuthHandler.handleLogin",
         "Runtime": "nodejs18.x",
@@ -261,7 +254,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-          "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
+          "S3Key": "serverless/game-mixer-backend/dev/1739038948215-2025-02-08T18:22:28.215Z/game-mixer-backend.zip"
         },
         "Handler": "src/handlers/adminAuthHandler.handleCreateUser",
         "Runtime": "nodejs18.x",
@@ -297,7 +290,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-          "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
+          "S3Key": "serverless/game-mixer-backend/dev/1739038948215-2025-02-08T18:22:28.215Z/game-mixer-backend.zip"
         },
         "Handler": "src/handlers/adminAuthHandler.getCurrentUser",
         "Runtime": "nodejs18.x",
@@ -328,16 +321,16 @@
         "GetCurrentAdminLogGroup"
       ]
     },
-    "HandleContactLambdaFunction": {
+    "SubmitContactLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-          "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
+          "S3Key": "serverless/game-mixer-backend/dev/1739038948215-2025-02-08T18:22:28.215Z/game-mixer-backend.zip"
         },
-        "Handler": "src/handlers/contactHandler.handler",
+        "Handler": "src/handlers/contactHandler.submitContact",
         "Runtime": "nodejs18.x",
-        "FunctionName": "game-mixer-backend-dev-handleContact",
+        "FunctionName": "game-mixer-backend-dev-submitContact",
         "MemorySize": 256,
         "Timeout": 29,
         "Environment": {
@@ -361,19 +354,19 @@
         }
       },
       "DependsOn": [
-        "HandleContactLogGroup"
+        "SubmitContactLogGroup"
       ]
     },
-    "HandleMonetaryDonationLambdaFunction": {
+    "SubmitMonetaryDonationLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-          "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
+          "S3Key": "serverless/game-mixer-backend/dev/1739038948215-2025-02-08T18:22:28.215Z/game-mixer-backend.zip"
         },
         "Handler": "src/handlers/donationsHandler.handleMonetaryDonation",
         "Runtime": "nodejs18.x",
-        "FunctionName": "game-mixer-backend-dev-handleMonetaryDonation",
+        "FunctionName": "game-mixer-backend-dev-submitMonetaryDonation",
         "MemorySize": 256,
         "Timeout": 29,
         "Environment": {
@@ -397,19 +390,19 @@
         }
       },
       "DependsOn": [
-        "HandleMonetaryDonationLogGroup"
+        "SubmitMonetaryDonationLogGroup"
       ]
     },
-    "HandleGoodsDonationLambdaFunction": {
+    "SubmitGoodsDonationLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-          "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
+          "S3Key": "serverless/game-mixer-backend/dev/1739038948215-2025-02-08T18:22:28.215Z/game-mixer-backend.zip"
         },
         "Handler": "src/handlers/donationsHandler.handleGoodsDonation",
         "Runtime": "nodejs18.x",
-        "FunctionName": "game-mixer-backend-dev-handleGoodsDonation",
+        "FunctionName": "game-mixer-backend-dev-submitGoodsDonation",
         "MemorySize": 256,
         "Timeout": 29,
         "Environment": {
@@ -433,43 +426,7 @@
         }
       },
       "DependsOn": [
-        "HandleGoodsDonationLogGroup"
-      ]
-    },
-    "VerifyDonationLambdaFunction": {
-      "Type": "AWS::Lambda::Function",
-      "Properties": {
-        "Code": {
-          "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-          "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
-        },
-        "Handler": "src/handlers/donationsHandler.verifyDonation",
-        "Runtime": "nodejs18.x",
-        "FunctionName": "game-mixer-backend-dev-verifyDonation",
-        "MemorySize": 256,
-        "Timeout": 29,
-        "Environment": {
-          "Variables": {
-            "SENDER_EMAIL": "admin@game-mixer.org",
-            "TABLE_NAME": "game-mixer-backend-dev",
-            "EVENTS_TABLE": "game-mixer-backend-events-dev",
-            "COGNITO_USER_POOL_ID": {
-              "Ref": "AdminUserPool"
-            },
-            "COGNITO_CLIENT_ID": {
-              "Ref": "AdminUserPoolClient"
-            }
-          }
-        },
-        "Role": {
-          "Fn::GetAtt": [
-            "IamRoleLambdaExecution",
-            "Arn"
-          ]
-        }
-      },
-      "DependsOn": [
-        "VerifyDonationLogGroup"
+        "SubmitGoodsDonationLogGroup"
       ]
     },
     "GetEventsLambdaFunction": {
@@ -477,7 +434,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-          "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
+          "S3Key": "serverless/game-mixer-backend/dev/1739038948215-2025-02-08T18:22:28.215Z/game-mixer-backend.zip"
         },
         "Handler": "src/handlers/eventsHandler.getEvents",
         "Runtime": "nodejs18.x",
@@ -513,7 +470,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-          "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
+          "S3Key": "serverless/game-mixer-backend/dev/1739038948215-2025-02-08T18:22:28.215Z/game-mixer-backend.zip"
         },
         "Handler": "src/handlers/eventsHandler.getEventDetails",
         "Runtime": "nodejs18.x",
@@ -549,7 +506,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-          "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
+          "S3Key": "serverless/game-mixer-backend/dev/1739038948215-2025-02-08T18:22:28.215Z/game-mixer-backend.zip"
         },
         "Handler": "src/handlers/eventsHandler.getTags",
         "Runtime": "nodejs18.x",
@@ -585,7 +542,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-          "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
+          "S3Key": "serverless/game-mixer-backend/dev/1739038948215-2025-02-08T18:22:28.215Z/game-mixer-backend.zip"
         },
         "Handler": "src/handlers/eventsHandler.createEvent",
         "Runtime": "nodejs18.x",
@@ -621,7 +578,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-          "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
+          "S3Key": "serverless/game-mixer-backend/dev/1739038948215-2025-02-08T18:22:28.215Z/game-mixer-backend.zip"
         },
         "Handler": "src/handlers/eventsHandler.updateEvent",
         "Runtime": "nodejs18.x",
@@ -657,7 +614,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "serverless-framework-deployments-us-west-2-ffca5d3a-bc84",
-          "S3Key": "serverless/game-mixer-backend/dev/1738881164369-2025-02-06T22:32:44.369Z/game-mixer-backend.zip"
+          "S3Key": "serverless/game-mixer-backend/dev/1739038948215-2025-02-08T18:22:28.215Z/game-mixer-backend.zip"
         },
         "Handler": "src/handlers/eventsHandler.deleteEvent",
         "Runtime": "nodejs18.x",
@@ -688,134 +645,124 @@
         "DeleteEventLogGroup"
       ]
     },
-    "AdminLoginLambdaVersionDbCPERe7orURLfZXen7jK9m3Z3QdlC3x24eXbfO1OQ": {
+    "AdminLoginLambdaVersiong4PG2b2sCOHmEjVEhpGlc9YUj7TIiCUVrXe4yopko": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "AdminLoginLambdaFunction"
         },
-        "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
+        "CodeSha256": "+zoP8erW34os4WHsDPfk1lZta7HsJfeYu044eSzyUwA="
       }
     },
-    "AdminCreateUserLambdaVersion9LSDEV24J3yXGn5J3lVusOyFECzj8wiX3OC3yXRt8": {
+    "AdminCreateUserLambdaVersionbLWWe9LoYLWsYUmh407J0mIVGR4SKSiSQa2qUmmfM": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "AdminCreateUserLambdaFunction"
         },
-        "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
+        "CodeSha256": "+zoP8erW34os4WHsDPfk1lZta7HsJfeYu044eSzyUwA="
       }
     },
-    "GetCurrentAdminLambdaVersion5aSFb7o9oQY5Yf9tA4l0nsI9KCieQh9xz8KsTS0wJo": {
+    "GetCurrentAdminLambdaVersiono4rfeIEm1ek9KqMESzKM04Joj21Dn0IVwtIhzhA0": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "GetCurrentAdminLambdaFunction"
         },
-        "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
+        "CodeSha256": "+zoP8erW34os4WHsDPfk1lZta7HsJfeYu044eSzyUwA="
       }
     },
-    "HandleContactLambdaVersionwezanSb4uuO7ouD1AaCuACdu2ZbpvSYPU61M3NxzDI": {
+    "SubmitContactLambdaVersionhlekTgr57jfmP9vwUKgNgMlo6RtWJT87cTCSc7JmeIs": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
-          "Ref": "HandleContactLambdaFunction"
+          "Ref": "SubmitContactLambdaFunction"
         },
-        "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
+        "CodeSha256": "+zoP8erW34os4WHsDPfk1lZta7HsJfeYu044eSzyUwA="
       }
     },
-    "HandleMonetaryDonationLambdaVersionuSZ9mF2YC25wrZcFpnMVZz465lDa4H3eSdqo6Dk0wc": {
+    "SubmitMonetaryDonationLambdaVersionZXzcCqFblzVFUc5KqA8067MMPc2kGThLydW3AlkRaM": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
-          "Ref": "HandleMonetaryDonationLambdaFunction"
+          "Ref": "SubmitMonetaryDonationLambdaFunction"
         },
-        "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
+        "CodeSha256": "+zoP8erW34os4WHsDPfk1lZta7HsJfeYu044eSzyUwA="
       }
     },
-    "HandleGoodsDonationLambdaVersionEZCWGggH6pMfVVeGe0rZIED63c3S1d6isOCVqIWtyR8": {
+    "SubmitGoodsDonationLambdaVersionaSEgXnJq6by06sjs3ioQLujdzth1QVcgEIp5hgHyFM": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
-          "Ref": "HandleGoodsDonationLambdaFunction"
+          "Ref": "SubmitGoodsDonationLambdaFunction"
         },
-        "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
+        "CodeSha256": "+zoP8erW34os4WHsDPfk1lZta7HsJfeYu044eSzyUwA="
       }
     },
-    "VerifyDonationLambdaVersionsr2O0l8mITe4NqtqMcehxoo5yHUtnMn5z1w7rldK1U": {
-      "Type": "AWS::Lambda::Version",
-      "DeletionPolicy": "Retain",
-      "Properties": {
-        "FunctionName": {
-          "Ref": "VerifyDonationLambdaFunction"
-        },
-        "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
-      }
-    },
-    "GetEventsLambdaVersion4qPfmmM9VUCSYRHnzMB484iJZ9HXn05S1wNkuxtuYg": {
+    "GetEventsLambdaVersionHYogg7Ba8Vo3R0AQY8npgrWA4G06tDX06YTAjrnw": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "GetEventsLambdaFunction"
         },
-        "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
+        "CodeSha256": "+zoP8erW34os4WHsDPfk1lZta7HsJfeYu044eSzyUwA="
       }
     },
-    "GetEventDetailsLambdaVersionBd27XxYQvhAswNke4B5rt5ZvTS73SOMQ5sur0dGZQ": {
+    "GetEventDetailsLambdaVersionvf6Leo7ySrWxPpQZC0drG47Lfpz5leDBr93rvm7pM": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "GetEventDetailsLambdaFunction"
         },
-        "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
+        "CodeSha256": "+zoP8erW34os4WHsDPfk1lZta7HsJfeYu044eSzyUwA="
       }
     },
-    "GetTagsLambdaVersionhGPMh7a2it5AK3plzZi59c1C5gas1fMkIYD73Ny88": {
+    "GetTagsLambdaVersioney3FuxK9XQ85YhKdLVWBQEdxDdKZ6bmKj40RyxbDs": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "GetTagsLambdaFunction"
         },
-        "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
+        "CodeSha256": "+zoP8erW34os4WHsDPfk1lZta7HsJfeYu044eSzyUwA="
       }
     },
-    "CreateEventLambdaVersionOx4suc60HVy1HF0KuSq5F8mKg0F89mL5TwvLWa5Ads": {
+    "CreateEventLambdaVersionwMbX2eSdbEcxNoocPcTYFgWqVWbZm3gwlvJwHEwhxUE": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "CreateEventLambdaFunction"
         },
-        "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
+        "CodeSha256": "+zoP8erW34os4WHsDPfk1lZta7HsJfeYu044eSzyUwA="
       }
     },
-    "UpdateEventLambdaVersionY1EaPXBhfagdZtEcGPjmz4UxC5TcnmLyXT7a5RurKY": {
+    "UpdateEventLambdaVersionajxEy2PRWVW5rXw56AUrVSoVK31wXqvj9EqqUmM": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "UpdateEventLambdaFunction"
         },
-        "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
+        "CodeSha256": "+zoP8erW34os4WHsDPfk1lZta7HsJfeYu044eSzyUwA="
       }
     },
-    "DeleteEventLambdaVersion5yYhqZxNYTDOBmuyuq8ieC4TnZm3bBJHHRHWPfMc19c": {
+    "DeleteEventLambdaVersionYy3CKx4aeeYx1C1lFMO4uQWGvUH9VxebMS3UNjlzf78": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "DeleteEventLambdaFunction"
         },
-        "CodeSha256": "v+/oPMFiv6yvHedICXKUDZrF+dpu+VlrrVCQh0X0Ezo="
+        "CodeSha256": "+zoP8erW34os4WHsDPfk1lZta7HsJfeYu044eSzyUwA="
       }
     },
     "ApiGatewayRestApi": {
@@ -955,18 +902,6 @@
           "Ref": "ApiGatewayResourceDonations"
         },
         "PathPart": "goods",
-        "RestApiId": {
-          "Ref": "ApiGatewayRestApi"
-        }
-      }
-    },
-    "ApiGatewayResourceDonationsVerify": {
-      "Type": "AWS::ApiGateway::Resource",
-      "Properties": {
-        "ParentId": {
-          "Ref": "ApiGatewayResourceDonations"
-        },
-        "PathPart": "verify",
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
         }
@@ -1275,51 +1210,6 @@
         },
         "ResourceId": {
           "Ref": "ApiGatewayResourceDonationsGoods"
-        },
-        "RestApiId": {
-          "Ref": "ApiGatewayRestApi"
-        }
-      }
-    },
-    "ApiGatewayMethodDonationsVerifyOptions": {
-      "Type": "AWS::ApiGateway::Method",
-      "Properties": {
-        "AuthorizationType": "NONE",
-        "HttpMethod": "OPTIONS",
-        "MethodResponses": [
-          {
-            "StatusCode": "200",
-            "ResponseParameters": {
-              "method.response.header.Access-Control-Allow-Origin": true,
-              "method.response.header.Access-Control-Allow-Headers": true,
-              "method.response.header.Access-Control-Allow-Methods": true
-            },
-            "ResponseModels": {}
-          }
-        ],
-        "RequestParameters": {},
-        "Integration": {
-          "Type": "MOCK",
-          "RequestTemplates": {
-            "application/json": "{statusCode:200}"
-          },
-          "ContentHandling": "CONVERT_TO_TEXT",
-          "IntegrationResponses": [
-            {
-              "StatusCode": "200",
-              "ResponseParameters": {
-                "method.response.header.Access-Control-Allow-Origin": "'*'",
-                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
-                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
-              },
-              "ResponseTemplates": {
-                "application/json": ""
-              }
-            }
-          ]
-        },
-        "ResourceId": {
-          "Ref": "ApiGatewayResourceDonationsVerify"
         },
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
@@ -1726,7 +1616,7 @@
                 ":lambda:path/2015-03-31/functions/",
                 {
                   "Fn::GetAtt": [
-                    "HandleContactLambdaFunction",
+                    "SubmitContactLambdaFunction",
                     "Arn"
                   ]
                 },
@@ -1738,7 +1628,7 @@
         "MethodResponses": []
       },
       "DependsOn": [
-        "HandleContactLambdaPermissionApiGateway"
+        "SubmitContactLambdaPermissionApiGateway"
       ]
     },
     "ApiGatewayMethodDonationsMonetaryPost": {
@@ -1772,7 +1662,7 @@
                 ":lambda:path/2015-03-31/functions/",
                 {
                   "Fn::GetAtt": [
-                    "HandleMonetaryDonationLambdaFunction",
+                    "SubmitMonetaryDonationLambdaFunction",
                     "Arn"
                   ]
                 },
@@ -1784,7 +1674,7 @@
         "MethodResponses": []
       },
       "DependsOn": [
-        "HandleMonetaryDonationLambdaPermissionApiGateway"
+        "SubmitMonetaryDonationLambdaPermissionApiGateway"
       ]
     },
     "ApiGatewayMethodDonationsGoodsPost": {
@@ -1818,7 +1708,7 @@
                 ":lambda:path/2015-03-31/functions/",
                 {
                   "Fn::GetAtt": [
-                    "HandleGoodsDonationLambdaFunction",
+                    "SubmitGoodsDonationLambdaFunction",
                     "Arn"
                   ]
                 },
@@ -1830,53 +1720,7 @@
         "MethodResponses": []
       },
       "DependsOn": [
-        "HandleGoodsDonationLambdaPermissionApiGateway"
-      ]
-    },
-    "ApiGatewayMethodDonationsVerifyPost": {
-      "Type": "AWS::ApiGateway::Method",
-      "Properties": {
-        "HttpMethod": "POST",
-        "RequestParameters": {},
-        "ResourceId": {
-          "Ref": "ApiGatewayResourceDonationsVerify"
-        },
-        "RestApiId": {
-          "Ref": "ApiGatewayRestApi"
-        },
-        "ApiKeyRequired": false,
-        "AuthorizationType": "NONE",
-        "Integration": {
-          "IntegrationHttpMethod": "POST",
-          "Type": "AWS_PROXY",
-          "Uri": {
-            "Fn::Join": [
-              "",
-              [
-                "arn:",
-                {
-                  "Ref": "AWS::Partition"
-                },
-                ":apigateway:",
-                {
-                  "Ref": "AWS::Region"
-                },
-                ":lambda:path/2015-03-31/functions/",
-                {
-                  "Fn::GetAtt": [
-                    "VerifyDonationLambdaFunction",
-                    "Arn"
-                  ]
-                },
-                "/invocations"
-              ]
-            ]
-          }
-        },
-        "MethodResponses": []
-      },
-      "DependsOn": [
-        "VerifyDonationLambdaPermissionApiGateway"
+        "SubmitGoodsDonationLambdaPermissionApiGateway"
       ]
     },
     "ApiGatewayMethodEventsGet": {
@@ -2184,7 +2028,7 @@
         ]
       }
     },
-    "ApiGatewayDeployment1738881156512": {
+    "ApiGatewayDeployment1739038939321": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -2199,7 +2043,6 @@
         "ApiGatewayMethodContactOptions",
         "ApiGatewayMethodDonationsMonetaryOptions",
         "ApiGatewayMethodDonationsGoodsOptions",
-        "ApiGatewayMethodDonationsVerifyOptions",
         "ApiGatewayMethodEventsOptions",
         "ApiGatewayMethodEventsIdVarOptions",
         "ApiGatewayMethodEventsTagsOptions",
@@ -2211,7 +2054,6 @@
         "ApiGatewayMethodContactPost",
         "ApiGatewayMethodDonationsMonetaryPost",
         "ApiGatewayMethodDonationsGoodsPost",
-        "ApiGatewayMethodDonationsVerifyPost",
         "ApiGatewayMethodEventsGet",
         "ApiGatewayMethodEventsIdVarGet",
         "ApiGatewayMethodEventsTagsGet",
@@ -2331,12 +2173,12 @@
         }
       }
     },
-    "HandleContactLambdaPermissionApiGateway": {
+    "SubmitContactLambdaPermissionApiGateway": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "FunctionName": {
           "Fn::GetAtt": [
-            "HandleContactLambdaFunction",
+            "SubmitContactLambdaFunction",
             "Arn"
           ]
         },
@@ -2368,12 +2210,12 @@
         }
       }
     },
-    "HandleMonetaryDonationLambdaPermissionApiGateway": {
+    "SubmitMonetaryDonationLambdaPermissionApiGateway": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "FunctionName": {
           "Fn::GetAtt": [
-            "HandleMonetaryDonationLambdaFunction",
+            "SubmitMonetaryDonationLambdaFunction",
             "Arn"
           ]
         },
@@ -2405,49 +2247,12 @@
         }
       }
     },
-    "HandleGoodsDonationLambdaPermissionApiGateway": {
+    "SubmitGoodsDonationLambdaPermissionApiGateway": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "FunctionName": {
           "Fn::GetAtt": [
-            "HandleGoodsDonationLambdaFunction",
-            "Arn"
-          ]
-        },
-        "Action": "lambda:InvokeFunction",
-        "Principal": "apigateway.amazonaws.com",
-        "SourceArn": {
-          "Fn::Join": [
-            "",
-            [
-              "arn:",
-              {
-                "Ref": "AWS::Partition"
-              },
-              ":execute-api:",
-              {
-                "Ref": "AWS::Region"
-              },
-              ":",
-              {
-                "Ref": "AWS::AccountId"
-              },
-              ":",
-              {
-                "Ref": "ApiGatewayRestApi"
-              },
-              "/*/*"
-            ]
-          ]
-        }
-      }
-    },
-    "VerifyDonationLambdaPermissionApiGateway": {
-      "Type": "AWS::Lambda::Permission",
-      "Properties": {
-        "FunctionName": {
-          "Fn::GetAtt": [
-            "VerifyDonationLambdaFunction",
+            "SubmitGoodsDonationLambdaFunction",
             "Arn"
           ]
         },
@@ -2938,7 +2743,7 @@
     "AdminLoginLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "AdminLoginLambdaVersionDbCPERe7orURLfZXen7jK9m3Z3QdlC3x24eXbfO1OQ"
+        "Ref": "AdminLoginLambdaVersiong4PG2b2sCOHmEjVEhpGlc9YUj7TIiCUVrXe4yopko"
       },
       "Export": {
         "Name": "sls-game-mixer-backend-dev-AdminLoginLambdaFunctionQualifiedArn"
@@ -2947,7 +2752,7 @@
     "AdminCreateUserLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "AdminCreateUserLambdaVersion9LSDEV24J3yXGn5J3lVusOyFECzj8wiX3OC3yXRt8"
+        "Ref": "AdminCreateUserLambdaVersionbLWWe9LoYLWsYUmh407J0mIVGR4SKSiSQa2qUmmfM"
       },
       "Export": {
         "Name": "sls-game-mixer-backend-dev-AdminCreateUserLambdaFunctionQualifiedArn"
@@ -2956,52 +2761,43 @@
     "GetCurrentAdminLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "GetCurrentAdminLambdaVersion5aSFb7o9oQY5Yf9tA4l0nsI9KCieQh9xz8KsTS0wJo"
+        "Ref": "GetCurrentAdminLambdaVersiono4rfeIEm1ek9KqMESzKM04Joj21Dn0IVwtIhzhA0"
       },
       "Export": {
         "Name": "sls-game-mixer-backend-dev-GetCurrentAdminLambdaFunctionQualifiedArn"
       }
     },
-    "HandleContactLambdaFunctionQualifiedArn": {
+    "SubmitContactLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "HandleContactLambdaVersionwezanSb4uuO7ouD1AaCuACdu2ZbpvSYPU61M3NxzDI"
+        "Ref": "SubmitContactLambdaVersionhlekTgr57jfmP9vwUKgNgMlo6RtWJT87cTCSc7JmeIs"
       },
       "Export": {
-        "Name": "sls-game-mixer-backend-dev-HandleContactLambdaFunctionQualifiedArn"
+        "Name": "sls-game-mixer-backend-dev-SubmitContactLambdaFunctionQualifiedArn"
       }
     },
-    "HandleMonetaryDonationLambdaFunctionQualifiedArn": {
+    "SubmitMonetaryDonationLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "HandleMonetaryDonationLambdaVersionuSZ9mF2YC25wrZcFpnMVZz465lDa4H3eSdqo6Dk0wc"
+        "Ref": "SubmitMonetaryDonationLambdaVersionZXzcCqFblzVFUc5KqA8067MMPc2kGThLydW3AlkRaM"
       },
       "Export": {
-        "Name": "sls-game-mixer-backend-dev-HandleMonetaryDonationLambdaFunctionQualifiedArn"
+        "Name": "sls-game-mixer-backend-dev-SubmitMonetaryDonationLambdaFunctionQualifiedArn"
       }
     },
-    "HandleGoodsDonationLambdaFunctionQualifiedArn": {
+    "SubmitGoodsDonationLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "HandleGoodsDonationLambdaVersionEZCWGggH6pMfVVeGe0rZIED63c3S1d6isOCVqIWtyR8"
+        "Ref": "SubmitGoodsDonationLambdaVersionaSEgXnJq6by06sjs3ioQLujdzth1QVcgEIp5hgHyFM"
       },
       "Export": {
-        "Name": "sls-game-mixer-backend-dev-HandleGoodsDonationLambdaFunctionQualifiedArn"
-      }
-    },
-    "VerifyDonationLambdaFunctionQualifiedArn": {
-      "Description": "Current Lambda function version",
-      "Value": {
-        "Ref": "VerifyDonationLambdaVersionsr2O0l8mITe4NqtqMcehxoo5yHUtnMn5z1w7rldK1U"
-      },
-      "Export": {
-        "Name": "sls-game-mixer-backend-dev-VerifyDonationLambdaFunctionQualifiedArn"
+        "Name": "sls-game-mixer-backend-dev-SubmitGoodsDonationLambdaFunctionQualifiedArn"
       }
     },
     "GetEventsLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "GetEventsLambdaVersion4qPfmmM9VUCSYRHnzMB484iJZ9HXn05S1wNkuxtuYg"
+        "Ref": "GetEventsLambdaVersionHYogg7Ba8Vo3R0AQY8npgrWA4G06tDX06YTAjrnw"
       },
       "Export": {
         "Name": "sls-game-mixer-backend-dev-GetEventsLambdaFunctionQualifiedArn"
@@ -3010,7 +2806,7 @@
     "GetEventDetailsLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "GetEventDetailsLambdaVersionBd27XxYQvhAswNke4B5rt5ZvTS73SOMQ5sur0dGZQ"
+        "Ref": "GetEventDetailsLambdaVersionvf6Leo7ySrWxPpQZC0drG47Lfpz5leDBr93rvm7pM"
       },
       "Export": {
         "Name": "sls-game-mixer-backend-dev-GetEventDetailsLambdaFunctionQualifiedArn"
@@ -3019,7 +2815,7 @@
     "GetTagsLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "GetTagsLambdaVersionhGPMh7a2it5AK3plzZi59c1C5gas1fMkIYD73Ny88"
+        "Ref": "GetTagsLambdaVersioney3FuxK9XQ85YhKdLVWBQEdxDdKZ6bmKj40RyxbDs"
       },
       "Export": {
         "Name": "sls-game-mixer-backend-dev-GetTagsLambdaFunctionQualifiedArn"
@@ -3028,7 +2824,7 @@
     "CreateEventLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "CreateEventLambdaVersionOx4suc60HVy1HF0KuSq5F8mKg0F89mL5TwvLWa5Ads"
+        "Ref": "CreateEventLambdaVersionwMbX2eSdbEcxNoocPcTYFgWqVWbZm3gwlvJwHEwhxUE"
       },
       "Export": {
         "Name": "sls-game-mixer-backend-dev-CreateEventLambdaFunctionQualifiedArn"
@@ -3037,7 +2833,7 @@
     "UpdateEventLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "UpdateEventLambdaVersionY1EaPXBhfagdZtEcGPjmz4UxC5TcnmLyXT7a5RurKY"
+        "Ref": "UpdateEventLambdaVersionajxEy2PRWVW5rXw56AUrVSoVK31wXqvj9EqqUmM"
       },
       "Export": {
         "Name": "sls-game-mixer-backend-dev-UpdateEventLambdaFunctionQualifiedArn"
@@ -3046,7 +2842,7 @@
     "DeleteEventLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "DeleteEventLambdaVersion5yYhqZxNYTDOBmuyuq8ieC4TnZm3bBJHHRHWPfMc19c"
+        "Ref": "DeleteEventLambdaVersionYy3CKx4aeeYx1C1lFMO4uQWGvUH9VxebMS3UNjlzf78"
       },
       "Export": {
         "Name": "sls-game-mixer-backend-dev-DeleteEventLambdaFunctionQualifiedArn"

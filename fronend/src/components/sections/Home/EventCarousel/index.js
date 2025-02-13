@@ -9,21 +9,21 @@ const EventCarousel = () => {
   const events = [
     {
       title: 'Weekly Board Game Socials',
-      description: 'Every Saturday, 80-120 participants connect through curated games that spark laughter, collaboration, and friendships.',
+      description: 'Every Saturday in the South Bay Area, our consistently packed events bring together 80-120 participants for engaging, high-energy gameplay. With nearly 30% new attendees each week, our community is constantly growing, fostering fresh connections and lasting engagement.',
       image: paths.getImagePath('picture/event1.jpg'),
-      link: paths.getRoutePath('/events/weekly-socials')
+      link: paths.getRoutePath('/#/events/9340e7f2-4c22-4189-8c50-1b2818748774')
     },
     {
-      title: 'Monthly Tournament',
-      description: 'Join our competitive yet friendly tournament series featuring strategy games and exciting prizes.',
-      image: paths.getImagePath('picture/event2.jpg'),
-      link: paths.getRoutePath('/events/tournaments')
-    },
-    {
-      title: 'Family Game Day',
-      description: 'A special monthly event designed for families to bond over board games and create lasting memories.',
+      title: 'Social, Charity and Community',
+      description: 'From charity fundraisers to gaming tournaments and community meetups, these events create meaningful social impact while celebrating gaming culture. By fostering connection, inclusivity, and positive change, sponsorship helps amplify these efforts, transforming gaming into a powerful force for good.',
       image: paths.getImagePath('picture/event3.jpg'),
-      link: paths.getRoutePath('/events/family-day')
+      link: 'https://mp.weixin.qq.com/s/g15wDHNcySFRU2LFa5wpvA'
+    },
+    {
+      title: 'Summer Barbeque',
+      description: 'The annual summer BBQ and board game meetup has become a flagship event, consistently reaching full capacity. With well-organized operations and strong engagement, participants sign up enthusiastically, establishing it as a trusted brand for community, entertainment, and impact.',
+      image: paths.getImagePath('picture/event2.jpg'),
+      link: 'https://mp.weixin.qq.com/s/7EwFrqcEhm0BfNxb7d1awg'
     }
   ];
 

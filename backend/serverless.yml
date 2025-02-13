@@ -34,6 +34,11 @@ provider:
           Resource: !GetAtt AdminUserPool.Arn
         - Effect: Allow
           Action:
+            - ses:SendEmail
+            - ses:SendRawEmail
+          Resource: "*"
+        - Effect: Allow
+          Action:
             - dynamodb:PutItem
             - dynamodb:GetItem
             - dynamodb:Query
@@ -45,11 +50,6 @@ provider:
             - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TABLE_NAME}/index/*"
             - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.EVENTS_TABLE}"
             - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.EVENTS_TABLE}/index/*"
-        - Effect: Allow
-          Action:
-            - ses:SendEmail
-            - ses:SendRawEmail
-          Resource: "*"
         - Effect: Allow
           Action:
             - logs:CreateLogGroup
@@ -91,9 +91,9 @@ functions:
             type: COGNITO_USER_POOLS
             arn: !GetAtt AdminUserPool.Arn
 
-  # Contact Handler
-  handleContact:
-    handler: src/handlers/contactHandler.handler
+  # Contact Form Handler
+  submitContact:
+    handler: src/handlers/contactHandler.submitContact
     events:
       - http:
           path: contact
@@ -103,7 +103,7 @@ functions:
     timeout: 29
 
   # Donation Handlers
-  handleMonetaryDonation:
+  submitMonetaryDonation:
     handler: src/handlers/donationsHandler.handleMonetaryDonation
     events:
       - http:
@@ -113,21 +113,11 @@ functions:
     memorySize: 256
     timeout: 29
 
-  handleGoodsDonation:
+  submitGoodsDonation:
     handler: src/handlers/donationsHandler.handleGoodsDonation
     events:
       - http:
           path: donations/goods
-          method: post
-          cors: true
-    memorySize: 256
-    timeout: 29
-
-  verifyDonation:
-    handler: src/handlers/donationsHandler.verifyDonation
-    events:
-      - http:
-          path: donations/verify
           method: post
           cors: true
     memorySize: 256
