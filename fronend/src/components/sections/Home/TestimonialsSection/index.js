@@ -75,12 +75,24 @@ const TestimonialsSection = () => {
     if (!touchStart) return;
     
     const currentTouch = e.targetTouches[0].clientX;
+    const touchY = e.targetTouches[0].clientY;
+    
+    // 检查是否是垂直滑动
+    const deltaX = Math.abs(currentTouch - touchStart);
+    const deltaY = Math.abs(touchY - (e.target.touchY || touchY));
+    
+    // 如果垂直移动距离大于水平移动距离，让事件继续冒泡以允许页面滚动
+    if (deltaY > deltaX) {
+      return;
+    }
+    
+    // 阻止默认行为，但只在水平滑动时
+    e.preventDefault();
     setTouchEnd(currentTouch);
     
     const diff = currentTouch - touchStart;
     setDragOffset(diff);
   };
-
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
     
