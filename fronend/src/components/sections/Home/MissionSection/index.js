@@ -13,7 +13,7 @@ const MissionSection = () => {
   };
 
   const carouselImages = [
-    { id: 1, src: paths.getImagePath('picture/carousel-1.jpg'), alt: "Community game night" },
+    { id: 1, src: paths.getImagePath('picture/carousel-1.JPG'), alt: "Community game night" },
     { id: 2, src: paths.getImagePath('picture/carousel-2.jpg'), alt: "Board game session" },
     { id: 3, src: paths.getImagePath('picture/carousel-3.JPG'), alt: "Game mixer event" },
   ];
