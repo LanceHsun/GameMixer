@@ -18,9 +18,9 @@ const TestimonialsSection = () => {
     },
     {
       name: "EDISON",
-      title: "Regular Member",
+      title: "Head of Alliance, AI & Cloud",
       quote: "There's something remarkable about Game Mixer players. I've always felt this instant connection and trust with them. We're all drawn here by Game Mixer's enduring commitment to giving back to the community. The chemistry is just magical! Through Game Mixer, I've built wonderful friendships, including one with a fellow player who now provides installation services for the hardware products I sell. We hit it off immediately, started referring trusted clients to each other, and now work together serving our shared customers. I couldn't be happier with this partnership! Thank you, Game Mixer, and thank you to all my amazing friends!",
-      linkedinUrl: "https://linkedin.com/in/edison",
+      linkedinUrl: "https://www.linkedin.com/in/edisonshih/",
       showLinkedIn: true
     },
     {
