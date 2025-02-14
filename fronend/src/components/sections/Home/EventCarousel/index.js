@@ -1,10 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { paths } from '../../../../../src/config/paths';
 
 const EventCarousel = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideDirection, setSlideDirection] = useState('right');
+
+  // Touch handling states
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const [touchStartY, setTouchStartY] = useState(null);
+  const [touchStartTime, setTouchStartTime] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isHorizontalDrag, setIsHorizontalDrag] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+
+  // Constants for touch handling
+  const DIRECTION_THRESHOLD = 10;
+  const MOVEMENT_THRESHOLD = 5;
+  const TIME_THRESHOLD = 100;
+  const SWIPE_THRESHOLD = 50;
+  const SPEED_THRESHOLD = 0.5;
 
   const events = [
     {
@@ -30,17 +46,94 @@ const EventCarousel = () => {
   const nextSlide = () => {
     setSlideDirection('right');
     setCurrentSlide((prev) => (prev + 1) % events.length);
+    setDragOffset(0);
   };
 
   const prevSlide = () => {
     setSlideDirection('left');
     setCurrentSlide((prev) => (prev - 1 + events.length) % events.length);
+    setDragOffset(0);
   };
 
   const goToSlide = (index) => {
     setSlideDirection(index > currentSlide ? 'right' : 'left');
     setCurrentSlide(index);
+    setDragOffset(0);
   };
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+    setTouchStartY(e.targetTouches[0].clientY);
+    setTouchStartTime(Date.now());
+    setIsDragging(true);
+    setIsHorizontalDrag(false);
+  };
+
+  const onTouchMove = (e) => {
+    if (!touchStart || !isDragging) return;
+
+    const currentTouch = e.targetTouches[0].clientX;
+    const currentY = e.targetTouches[0].clientY;
+    
+    // If movement is too quick and distance is too short, ignore
+    if (Date.now() - touchStartTime < TIME_THRESHOLD) {
+      const deltaX = Math.abs(currentTouch - touchStart);
+      if (deltaX < MOVEMENT_THRESHOLD) {
+        return;
+      }
+    }
+
+    const deltaX = Math.abs(currentTouch - touchStart);
+    const deltaY = Math.abs(currentY - touchStartY);
+
+    // Determine scroll direction
+    if (!isHorizontalDrag && (deltaX > DIRECTION_THRESHOLD || deltaY > DIRECTION_THRESHOLD)) {
+      if (deltaX > deltaY) {
+        setIsHorizontalDrag(true);
+        // Only prevent default for horizontal drags
+        e.preventDefault();
+      } else {
+        // For vertical scrolls, cancel dragging and let native scroll happen
+        setIsDragging(false);
+        setDragOffset(0);
+        return;
+      }
+    }
+
+    // Handle horizontal drag
+    if (isHorizontalDrag) {
+      setTouchEnd(currentTouch);
+      const diff = currentTouch - touchStart;
+      setDragOffset(diff);
+    }
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd || !touchStartTime) return;
+
+    const distance = touchStart - touchEnd;
+    const swipeSpeed = Math.abs(distance) / (Date.now() - touchStartTime);
+
+    setIsDragging(false);
+    setDragOffset(0);
+
+    if (distance > SWIPE_THRESHOLD || (distance > 0 && swipeSpeed > SPEED_THRESHOLD)) {
+      nextSlide();
+    } else if (distance < -SWIPE_THRESHOLD || (distance < 0 && swipeSpeed > SPEED_THRESHOLD)) {
+      prevSlide();
+    }
+  };
+
+  // Reset touch states when dragging ends
+  useEffect(() => {
+    if (!isDragging) {
+      setTouchStart(null);
+      setTouchEnd(null);
+      setTouchStartTime(null);
+      setIsHorizontalDrag(false);
+    }
+  }, [isDragging]);
 
   return (
     <section id="event-carousel" className="bg-[#FAF6F0] px-4 py-8 md:py-12">
@@ -56,63 +149,70 @@ const EventCarousel = () => {
 
         <div className="relative max-w-2xl mx-auto">
           <div 
-            key={currentSlide}
-            className={`h-[400px] rounded-xl overflow-hidden relative
-              ${slideDirection === 'right' ? 'translate-x-full opacity-0' : '-translate-x-full opacity-0'}
-              animate-slideIn`}
-            style={{
-              animation: `slideIn${slideDirection === 'right' ? 'Right' : 'Left'} 0.5s forwards`
-            }}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
           >
-            {/* Background Image with Gradient Overlay */}
-            <div className="absolute inset-0">
-              <img
-                src={events[currentSlide].image}
-                alt={events[currentSlide].title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#FFF4CC] via-[#FFF4CC]/60 to-white/60 backdrop-blur-sm" />
-            </div>
-
-            {/* Content - Updated Typography */}
-            <div className="relative h-full flex flex-col justify-between p-8">
-              <div className="max-w-xl">
-                <h3 className="text-2xl md:text-3xl text-[#2C2C2C] font-medium mb-4 font-serif">
-                  {events[currentSlide].title}
-                </h3>
-                <p className="text-base text-[#2C2C2C]/70 leading-relaxed">
-                  {events[currentSlide].description}
-                </p>
+            <div 
+              className={`h-[400px] rounded-xl overflow-hidden relative
+                ${!isDragging && (slideDirection === 'right' ? 'translate-x-full opacity-0' : '-translate-x-full opacity-0')}
+                ${!isDragging ? 'animate-slideIn' : ''}`}
+              style={{
+                transform: isDragging ? `translateX(${dragOffset}px)` : undefined,
+                animation: !isDragging ? `slideIn${slideDirection === 'right' ? 'Right' : 'Left'} 0.5s forwards` : undefined,
+                cursor: isDragging ? 'grabbing' : 'grab'
+              }}
+            >
+              {/* Background image and gradient overlay */}
+              <div className="absolute inset-0">
+                <img
+                  src={events[currentSlide].image}
+                  alt={events[currentSlide].title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#FFF4CC] via-[#FFF4CC]/60 to-white/60 backdrop-blur-sm" />
               </div>
-              
-              <div className="self-end">
-                <a 
-                  href={events[currentSlide].link}
-                  className="text-base text-[#2C2C2C]/70 hover:text-[#2C2C2C] transition-colors hover:underline inline-flex items-center gap-2"
-                >
-                  Read more
-                </a>
+
+              {/* Content */}
+              <div className="relative h-full flex flex-col justify-between p-8">
+                <div className="max-w-xl">
+                  <h3 className="text-2xl md:text-3xl text-[#2C2C2C] font-medium mb-4 font-serif">
+                    {events[currentSlide].title}
+                  </h3>
+                  <p className="text-base text-[#2C2C2C]/70 leading-relaxed">
+                    {events[currentSlide].description}
+                  </p>
+                </div>
+                
+                <div className="self-end">
+                  <a 
+                    href={events[currentSlide].link}
+                    className="text-base text-[#2C2C2C]/70 hover:text-[#2C2C2C] transition-colors hover:underline inline-flex items-center gap-2"
+                  >
+                    Read more
+                  </a>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Navigation Buttons */}
+          {/* Navigation buttons */}
           <button 
             onClick={prevSlide}
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-[#2C2C2C]/10 hover:bg-[#2C2C2C]/20 text-[#2C2C2C] transition-colors z-10"
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-[#2C2C2C]/10 hover:bg-[#2C2C2C]/20 text-[#2C2C2C] transition-colors z-10 hidden md:block"
             aria-label="Previous slide"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
           <button 
             onClick={nextSlide}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-[#2C2C2C]/10 hover:bg-[#2C2C2C]/20 text-[#2C2C2C] transition-colors z-10"
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-[#2C2C2C]/10 hover:bg-[#2C2C2C]/20 text-[#2C2C2C] transition-colors z-10 hidden md:block"
             aria-label="Next slide"
           >
             <ChevronRight className="w-6 h-6" />
           </button>
 
-          {/* Slide Indicators */}
+          {/* Slide indicators */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex justify-center gap-2 z-10">
             {events.map((_, index) => (
               <button

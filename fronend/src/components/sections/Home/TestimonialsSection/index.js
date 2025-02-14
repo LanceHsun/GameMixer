@@ -53,7 +53,7 @@ const TestimonialsSection = () => {
       quote: "Stella introduced me to these board game gatherings, and I was instantly impressed by her dedication to organizing each event. As a restaurant owner, I'm happy to provide ingredients for Game Mixer's BBQ events. The community has brought so many wonderful friends into my life that helping out feels natural. I've watched with joy as their events have grown larger and more organized over time. I hope Game Mixer continues to thrive for many years to come.",
       showLinkedIn: false
     }
-];
+  ];
 
   const handlePrev = () => {
     setCurrentPage((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1));
@@ -65,10 +65,15 @@ const TestimonialsSection = () => {
     setDragOffset(0);
   };
 
+  const [touchStartY, setTouchStartY] = useState(null);
+  const [isHorizontalDrag, setIsHorizontalDrag] = useState(false);
+
   const onTouchStart = (e) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
+    setTouchStartY(e.targetTouches[0].clientY);
     setIsDragging(true);
+    setIsHorizontalDrag(false);
   };
 
   const onTouchMove = (e) => {
@@ -76,26 +81,31 @@ const TestimonialsSection = () => {
     
     const currentTouch = e.targetTouches[0].clientX;
     const currentY = e.targetTouches[0].clientY;
-    const startY = e.targetTouches[0].clientY;
     
     // 计算水平和垂直移动距离
     const deltaX = Math.abs(currentTouch - touchStart);
-    const deltaY = Math.abs(currentY - startY);
+    const deltaY = Math.abs(currentY - touchStartY);
     
-    // 如果刚开始移动（deltaX < 10）且垂直移动更明显，取消拖动状态
-    if (deltaX < 10 && deltaY > deltaX) {
-      setIsDragging(false);
-      return;
+    // 如果还没确定是水平滑动，且移动距离足够判断方向
+    if (!isHorizontalDrag && (deltaX > 5 || deltaY > 5)) {
+      if (deltaX > deltaY) {
+        setIsHorizontalDrag(true);
+      } else {
+        // 如果是垂直滑动，取消拖动状态
+        setIsDragging(false);
+        return;
+      }
     }
     
-    // 如果确定是水平滑动，则阻止默认行为并更新状态
-    if (deltaX > deltaY) {
+    // 只在确认是水平滑动时处理
+    if (isHorizontalDrag) {
       e.preventDefault();
       setTouchEnd(currentTouch);
       const diff = currentTouch - touchStart;
       setDragOffset(diff);
     }
   };
+
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
     
@@ -113,7 +123,7 @@ const TestimonialsSection = () => {
     }
   };
 
-  // Reset touch states when dragging ends
+  // 拖动结束后重置触摸状态
   useEffect(() => {
     if (!isDragging) {
       setTouchStart(null);
@@ -159,8 +169,7 @@ const TestimonialsSection = () => {
           </button>
 
           {/* Testimonial Card */}
-          <div 
-            className="touch-pan-x"
+          <div
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}

@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
 import { useDonation } from '../../../../context/DonationContext';
 import { donationService } from '../../../../services/api';
 
 const DonationOptions = () => {
+  const location = useLocation();
   const {
     selectedAmount,
     donationType,
@@ -23,7 +25,15 @@ const DonationOptions = () => {
   const [submitStatus, setSubmitStatus] = useState({ type: '', message: '' });
   const [errors, setErrors] = useState({});
 
-  // 其他函数保持不变...
+  // 处理从其他页面跳转过来时的自动选择金额
+  useEffect(() => {
+    if (location.state?.autoSelect) {
+      const amount = location.state.preSelectedAmount;
+      setDonationAmount(amount);
+      setDonationType('financial');
+    }
+  }, [location.state, setDonationAmount, setDonationType]);
+
   const getNextSaturday = () => {
     const today = new Date();
     const day = today.getDay();
