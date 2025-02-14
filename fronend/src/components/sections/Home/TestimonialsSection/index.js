@@ -72,26 +72,29 @@ const TestimonialsSection = () => {
   };
 
   const onTouchMove = (e) => {
-    if (!touchStart) return;
+    if (!touchStart || !isDragging) return;
     
     const currentTouch = e.targetTouches[0].clientX;
-    const touchY = e.targetTouches[0].clientY;
+    const currentY = e.targetTouches[0].clientY;
+    const startY = e.targetTouches[0].clientY;
     
-    // 检查是否是垂直滑动
+    // 计算水平和垂直移动距离
     const deltaX = Math.abs(currentTouch - touchStart);
-    const deltaY = Math.abs(touchY - (e.target.touchY || touchY));
+    const deltaY = Math.abs(currentY - startY);
     
-    // 如果垂直移动距离大于水平移动距离，让事件继续冒泡以允许页面滚动
-    if (deltaY > deltaX) {
+    // 如果刚开始移动（deltaX < 10）且垂直移动更明显，取消拖动状态
+    if (deltaX < 10 && deltaY > deltaX) {
+      setIsDragging(false);
       return;
     }
     
-    // 阻止默认行为，但只在水平滑动时
-    e.preventDefault();
-    setTouchEnd(currentTouch);
-    
-    const diff = currentTouch - touchStart;
-    setDragOffset(diff);
+    // 如果确定是水平滑动，则阻止默认行为并更新状态
+    if (deltaX > deltaY) {
+      e.preventDefault();
+      setTouchEnd(currentTouch);
+      const diff = currentTouch - touchStart;
+      setDragOffset(diff);
+    }
   };
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;

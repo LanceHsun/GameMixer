@@ -1,15 +1,23 @@
+// CallToAction.jsx
 import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDonation } from '../../../../context/DonationContext';
 
 const CallToAction = () => {
-  const { setDonationAmount } = useDonation();
+  const { setDonationAmount, setDonationType } = useDonation();
+  const navigate = useNavigate();
 
   const handleDonateClick = () => {
-    const element = document.getElementById('donation-options');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setDonationAmount(40);
-    }
+    // 设置金额和捐赠类型
+    setDonationAmount(40);
+    setDonationType('financial');
+    // 使用 state 进行导航，传递预选金额信息
+    navigate('/donate', { 
+      state: { 
+        preSelectedAmount: 40,
+        autoSelect: true 
+      } 
+    });
   };
 
   return (
@@ -35,7 +43,7 @@ const CallToAction = () => {
           </button>
         </div>
 
-        {/* Visual Elements - Updated margin-top for md screens */}
+        {/* Visual Elements */}
         <div className="w-full md:w-1/2 my-16 md:-mt-11 md:mb-8">
           <div className="relative max-w-[420px] mx-auto h-60 md:h-96">
             <div className="absolute left-0 -top-4 w-[240px] aspect-[4/3] rounded-lg shadow-md overflow-hidden 

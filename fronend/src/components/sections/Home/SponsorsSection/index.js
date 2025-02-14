@@ -1,4 +1,6 @@
+// SponsorsSection.jsx
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const SponsorsSection = () => {
   const basePath = `${process.env.PUBLIC_URL}/images/sponsor-logo/`;
@@ -38,16 +40,6 @@ const SponsorsSection = () => {
     },
   ];
 
-  const handleGiveToday = () => {
-    const donationSection = document.getElementById('donation-options');
-    if (donationSection) {
-      donationSection.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
-    }
-  };
-
   return (
     <section id="sponsors" className="bg-[#FAF6F0] max-w-screen-lg mx-auto px-4 py-12 md:py-20">
       <div className="text-center space-y-4 mb-12">
@@ -86,9 +78,10 @@ const SponsorsSection = () => {
         <p className="text-xl text-[#2C2C2C]/70">
           Join these game-changers in building a more connected Silicon Valley.
         </p>
-        <button 
-          onClick={handleGiveToday}
+        <Link 
+          to="/donate"
           className="
+            inline-block
             px-8 
             py-3 
             rounded-xl
@@ -108,7 +101,7 @@ const SponsorsSection = () => {
           "
         >
           GIVE TODAY
-        </button>
+        </Link>
       </div>
     </section>
   );
