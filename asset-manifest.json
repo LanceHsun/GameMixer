@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/GameMixer/static/css/main.7c82177a.css",
-    "main.js": "/GameMixer/static/js/main.fba8711d.js",
-    "static/js/488.27124c32.chunk.js": "/GameMixer/static/js/488.27124c32.chunk.js",
-    "index.html": "/GameMixer/index.html",
-    "main.7c82177a.css.map": "/GameMixer/static/css/main.7c82177a.css.map",
-    "main.fba8711d.js.map": "/GameMixer/static/js/main.fba8711d.js.map",
-    "488.27124c32.chunk.js.map": "/GameMixer/static/js/488.27124c32.chunk.js.map"
+    "main.css": "./static/css/main.7c82177a.css",
+    "main.js": "./static/js/main.befa4e08.js",
+    "static/js/488.27124c32.chunk.js": "./static/js/488.27124c32.chunk.js",
+    "index.html": "./index.html",
+    "main.7c82177a.css.map": "./static/css/main.7c82177a.css.map",
+    "main.befa4e08.js.map": "./static/js/main.befa4e08.js.map",
+    "488.27124c32.chunk.js.map": "./static/js/488.27124c32.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.7c82177a.css",
-    "static/js/main.fba8711d.js"
+    "static/js/main.befa4e08.js"
   ]
 }
